@@ -16,7 +16,7 @@ const router = createRouter({
       component: () => import('../views/LoginView.vue'),
       meta: { requiresAuth: false }
     },
-    // --- ВНУТРЕННИЙ КОНТУР ---
+    // --- INTERNAL ROUTES ---
     {
       path: '/dashboard',
       name: 'dashboard',
@@ -42,25 +42,28 @@ const router = createRouter({
   ]
 })
 
-// --- NAVIGATION GUARD (ЗАЩИТА РОУТОВ) ---
+// --- NAVIGATION GUARD ---
 router.beforeEach((to, from, next) => {
-  // ВРЕМЕННО: Отключаем проверку токена для разработки
-  // Чтобы вернуть защиту, раскомментируй код ниже и удали "next()"
-
-  next();
+  // === TODO: UNCOMMENT WHEN BACKEND IS READY ===
 
   /*
-  const token = localStorage.getItem('auth_token');
-  const isAuthenticated = !!token;
+  const isAuthenticated = localStorage.getItem('is_authenticated') === 'true';
 
+  // 1. If route requires auth and user is not logged in -> redirect to login
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login');
-  } else if (to.path === '/login' && isAuthenticated) {
+    return;
+  }
+
+  // 2. If user is logged in and tries to access login -> redirect to dashboard
+  if (to.path === '/login' && isAuthenticated) {
     next('/dashboard');
-  } else {
-    next();
+    return;
   }
   */
+
+  // Temporarily allow everything
+  next();
 });
 
 export default router
