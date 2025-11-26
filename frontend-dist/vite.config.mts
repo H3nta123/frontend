@@ -39,7 +39,6 @@ export default defineConfig({
     Vue({
       template: { transformAssetUrls },
     }),
-    // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
     Vuetify({
       autoImport: true,
       styles: {
@@ -85,4 +84,14 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  server: {
+    proxy: {
+      '/api': {
+        // Вставь сюда свой НОВЫЙ адрес туннеля:
+        target: 'http://85c0bec9-7bd4-4e64-a9f5-1ae68fbc6372.tunnel4.com',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })

@@ -1,20 +1,24 @@
 <template>
   <v-container fill-height fluid class="d-flex align-center justify-center">
-    <v-card width="450" elevation="10" class="pa-4">
-      <h2 class="text-h5 text-center mb-4">Вход в систему</h2>
+    <v-card width="450" elevation="10" class="pa-6">
+      <h2 class="text-h5 text-center mb-6">Вход в систему</h2>
 
       <v-form @submit.prevent="handleSubmit">
+
         <div v-if="step === 1">
+          <p class="text-body-2 text-grey mb-4 text-center">
+            Введите почту, чтобы получить код доступа
+          </p>
+
           <v-text-field
             v-model="email"
-            label="Введите ваш E-mail"
-            variant="filled"
+            label="E-mail"
+            variant="outlined"
             type="email"
+            placeholder="name@example.com"
             prepend-inner-icon="mdi-email"
-            placeholder="example@mail.com"
-            bg-color="#EEE0FF"
-            class="mb-3"
-            :rules="[v => !!v || 'Email обязателен']"
+            :rules="[v => !!v || 'Обязательное поле']"
+            autofocus
           ></v-text-field>
 
           <v-btn
@@ -22,7 +26,7 @@
             color="#542F99"
             block
             size="large"
-            class="mt-4 text-white"
+            class="mt-2 text-white"
             :loading="loading"
           >
             Получить код
@@ -30,23 +34,30 @@
         </div>
 
         <div v-else>
-          <div class="text-center mb-4 text-grey">
-            Код отправлен на <b>{{ email }}</b>
+          <div class="text-center mb-6">
+            <div class="text-body-1 font-weight-bold mb-1">Введите код</div>
+            <div class="text-caption text-grey">
+              Мы отправили его на {{ email }}
+            </div>
           </div>
 
-          <v-otp-input
+          <v-text-field
             v-model="otpCode"
-            length="6"
+            label="Код из письма"
             variant="outlined"
-            class="mb-4 justify-center"
-          ></v-otp-input>
+            placeholder="123456"
+            type="number"
+            prepend-inner-icon="mdi-lock-check"
+            class="text-center"
+            autofocus
+          ></v-text-field>
 
           <v-btn
             type="submit"
             color="#542F99"
             block
             size="large"
-            class="mt-4 text-white"
+            class="mt-2 text-white"
             :loading="loading"
           >
             Войти
@@ -55,12 +66,14 @@
           <v-btn
             variant="text"
             block
-            class="mt-2"
+            size="small"
+            class="mt-4 text-grey"
             @click="step = 1"
           >
-            Изменить Email
+            ← Вернуться к вводу почты
           </v-btn>
         </div>
+
       </v-form>
     </v-card>
   </v-container>
@@ -72,13 +85,14 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-// Состояние
-const step = ref(1); // 1 - вводим email, 2 - вводим код
+// --- СОСТОЯНИЕ ---
+const step = ref(1);
 const loading = ref(false);
 const email = ref('');
 const otpCode = ref('');
 
-// Функция-распределитель: решает, что делать при нажатии кнопки
+// --- ЛОГИКА ---
+
 const handleSubmit = () => {
   if (step.value === 1) {
     sendEmail();
@@ -87,56 +101,60 @@ const handleSubmit = () => {
   }
 };
 
-// Отправка Email на сервер
+// ШАГ 1: Отправка почты
 const sendEmail = async () => {
   if (!email.value) return;
   loading.value = true;
 
   try {
-    const response = await fetch('http://localhost:8000/api/v1/auth/login/', {
+    const response = await fetch('/api/v1/auth/login/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value }) // Отправляем только email
+      body: JSON.stringify({ email: email.value })
     });
 
     if (response.ok) {
-      step.value = 2; // Переходим ко вводу кода
+      step.value = 2;
     } else {
-      alert('Ошибка! Возможно, неверный email.');
+      alert('Ошибка! Проверьте email.');
     }
   } catch (e) {
     console.error(e);
-    alert('Ошибка сети');
+    alert('Нет связи с сервером');
   } finally {
     loading.value = false;
   }
 };
 
 const verifyCode = async () => {
-  if (!otpCode.value) return;
+  if (!otpCode.value) return alert('Введите код!');
   loading.value = true;
 
   try {
-    // Согласно доке: POST /api/v1/auth/confirm/
     const payload = {
       email: email.value,
-      code: otpCode.value
+      code: Number(otpCode.value)
     };
 
-    const response = await fetch('http://localhost:8000/api/v1/auth/confirm/', {
+    const response = await fetch('/api/v1/auth/login/confirmation/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
     if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
+      const userData = await response.json();
+      console.log('Успешный вход, пользователь:', userData);
 
-      alert('Успешный вход!');
-      router.push('/home'); // Перенаправляем на главную
+      // 1. СОХРАНЯЕМ ФЛАГ АВТОРИЗАЦИИ
+      // В реальном проекте тут мы бы сохранили 'token', но пока ставим метку 'true'
+      localStorage.setItem('is_authenticated', 'true');
+
+      // 2. ПЕРЕНАПРАВЛЯЕМ НА ЗАЩИЩЕННУЮ СТРАНИЦУ (ДАШБОРД)
+      // Раньше было router.push('/home'), теперь ведем внутрь системы
+      router.push('/dashboard');
     } else {
-      alert('Неверный код');
+      alert('Неверный код. Попробуйте еще раз.');
     }
   } catch (e) {
     console.error(e);

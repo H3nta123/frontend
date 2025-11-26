@@ -1,13 +1,9 @@
 <template>
   <v-app>
-    <v-main>
-      <router-view />
-    </v-main>
+    <router-view />
   </v-app>
 </template>
 
 <script setup lang="ts">
+// Здесь пусто, вся логика в router-view
 </script>
-
-<style scoped>
-</style>
