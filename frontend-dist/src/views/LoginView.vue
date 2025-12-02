@@ -1,7 +1,10 @@
 <template>
-  <AuthCard />
+  <AuthLayout>
+    <AuthCard />
+  </AuthLayout>
 </template>
 
 <script setup lang="ts">
-import AuthCard from '../components/AuthCard.vue'; // Импортируем наш новый компонент
+import AuthLayout from '@/layouts/AuthLayout.vue';
+import AuthCard from '@/components/AuthCard.vue';
 </script>

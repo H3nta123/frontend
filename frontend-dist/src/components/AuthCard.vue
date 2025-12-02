@@ -5,7 +5,6 @@
 
       <v-form @submit.prevent="handleSubmit">
 
-        <!-- ШАГ 1: Ввод почты -->
         <div v-if="step === 1">
           <p class="text-body-2 text-grey mb-4 text-center">
             Введите почту, чтобы получить код доступа
@@ -21,6 +20,7 @@
             density="comfortable"
             :rules="[v => !!v || 'Обязательное поле', v => /.+@.+\..+/.test(v) || 'Некорректный E-mail']"
             autofocus
+            :error-messages="authStore.error"
           ></v-text-field>
 
           <v-btn
@@ -30,14 +30,13 @@
             size="large"
             class="mt-4 text-white text-none font-weight-bold"
             rounded="lg"
-            :loading="loading"
+            :loading="authStore.loading"
             elevation="0"
           >
             Получить код
           </v-btn>
         </div>
 
-        <!-- ШАГ 2: Ввод кода -->
         <div v-else>
           <div class="text-center mb-6">
             <div class="text-body-1 font-weight-bold mb-1">Введите код</div>
@@ -52,7 +51,12 @@
             class="mb-6 justify-center"
             variant="outlined"
             color="primary"
+            :disabled="authStore.loading"
           ></v-otp-input>
+
+          <div v-if="authStore.error" class="text-red text-center text-caption mb-2">
+            {{ authStore.error }}
+          </div>
 
           <v-btn
             type="submit"
@@ -61,7 +65,7 @@
             size="large"
             class="mt-2 text-white text-none font-weight-bold"
             rounded="lg"
-            :loading="loading"
+            :loading="authStore.loading"
             elevation="0"
           >
             Войти
@@ -72,7 +76,7 @@
             block
             size="small"
             class="mt-4 text-grey"
-            @click="step = 1"
+            @click="step = 1; authStore.error = ''"
           >
             ← Изменить почту
           </v-btn>
@@ -86,94 +90,32 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+// Импортируем наш новый стор
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
-// --- СОСТОЯНИЕ ---
+// Локальное состояние компонента
 const step = ref(1);
-const loading = ref(false);
 const email = ref('');
 const otpCode = ref('');
 
-// --- ЛОГИКА ---
-
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (step.value === 1) {
-    sendLoginRequest();
+    // Логика 1 шага через Store
+    const success = await authStore.sendLoginRequest(email.value);
+    if (success) {
+      step.value = 2;
+    }
   } else {
-    verifyCode();
-  }
-};
+    // Логика 2 шага через Store
+    if (!otpCode.value || otpCode.value.length < 5) return;
 
-// ШАГ 1: Отправка запроса на логин
-const sendLoginRequest = async () => {
-  if (!email.value) return;
-
-  loading.value = true;
-
-  try {
-    // Используем существующий эндпоинт логина
-    const response = await fetch('/api/v1/auth/login/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.value })
-    });
-
-    if (response.ok) {
-      step.value = 2; // Переход к вводу кода
-    } else {
-      const error = await response.json();
-      alert(error.detail || 'Ошибка запроса. Проверьте почту.');
-    }
-  } catch (e) {
-    console.error(e);
-    alert('Нет связи с сервером');
-  } finally {
-    loading.value = false;
-  }
-};
-
-// ШАГ 2: Подтверждение кода
-const verifyCode = async () => {
-  if (!otpCode.value || otpCode.value.length < 5) return alert('Введите полный код!');
-  loading.value = true;
-
-  try {
-    const payload = {
-      email: email.value,
-      code: Number(otpCode.value)
-    };
-
-    const response = await fetch('/api/v1/auth/login/confirmation/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (response.ok) {
-      const userData = await response.json();
-      console.log('Успешный вход:', userData);
-
-      // === ВАЖНО: СОХРАНЕНИЕ ТОКЕНА ===
-      localStorage.setItem('is_authenticated', 'true');
-
-      // Если бэкенд возвращает токен в поле 'token' или 'access_token', сохраняем его:
-      // localStorage.setItem('jwt_token', userData.token);
-
-      // Для примера, предположим, что токен есть в ответе:
-      if (userData.token) {
-        localStorage.setItem('jwt_token', userData.token);
-      }
-
+    const success = await authStore.verifyCode(email.value, otpCode.value);
+    if (success) {
       router.push('/dashboard');
-    } else {
-      alert('Неверный код. Попробуйте еще раз.');
     }
-  } catch (e) {
-    console.error(e);
-    alert('Ошибка сети');
-  } finally {
-    loading.value = false;
   }
 };
 </script>

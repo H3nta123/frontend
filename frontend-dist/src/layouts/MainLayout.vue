@@ -2,7 +2,7 @@
   <v-app>
     <!-- === ШАПКА (Header) === -->
     <v-app-bar color="#2A1A8E" height="64" flat class="px-4">
-      <!-- Логотип / Иконка меню -->
+      <!-- Логотип -->
       <div class="d-flex align-center mr-6">
         <v-avatar color="white" size="40">
           <v-icon icon="mdi-cart-outline" color="black" size="24"></v-icon>
@@ -11,12 +11,12 @@
 
       <v-spacer></v-spacer>
 
-      <!-- Поиск по центру -->
+      <!-- Поиск -->
       <v-responsive max-width="600" class="mx-4 w-100">
         <v-text-field
           density="compact"
           variant="solo"
-          placeholder="введите запрос"
+          placeholder="Поиск по заказам, товарам..."
           single-line
           hide-details
           rounded="lg"
@@ -24,7 +24,6 @@
           class="custom-search"
           height="40"
         >
-          <!-- Иконка поиска -->
           <template v-slot:append-inner>
             <div class="d-flex align-center justify-center ml-2" style="height: 100%;">
               <v-icon icon="mdi-magnify" color="black" size="24"></v-icon>
@@ -35,121 +34,131 @@
 
       <v-spacer></v-spacer>
 
-      <!-- === БЛОК АВТОРИЗАЦИИ === -->
+      <!-- Меню профиля -->
       <div class="d-flex align-center">
-        <template v-if="isAuthenticated">
-          <!-- Кнопка "Мои заказы" (видна только если вошел) -->
-          <v-btn
-            class="text-none mr-4 px-6 font-weight-medium text-body-2"
-            color="#7C84D4"
-            variant="flat"
-            rounded="pill"
-            height="36"
-          >
-            мои заказы
-          </v-btn>
+        <!-- Кнопка "Мои заказы" (Видна всегда) -->
+        <v-btn
+          class="text-none mr-4 px-6 font-weight-medium text-body-2"
+          color="#7C84D4"
+          variant="flat"
+          rounded="pill"
+          height="36"
+        >
+          мои заказы
+        </v-btn>
 
-          <!-- Аватар Пользователя с Меню (Dropdown) -->
-          <v-menu min-width="200px" rounded offset-y>
-            <template v-slot:activator="{ props }">
-              <v-btn icon v-bind="props">
-                <v-avatar color="#7C84D4" size="42" class="cursor-pointer">
-                  <span class="text-white text-h6 font-weight-medium">N</span>
+        <v-menu v-if="authStore.isAuthenticated" min-width="200px" rounded offset-y>
+          <template v-slot:activator="{ props }">
+            <v-btn icon v-bind="props">
+              <v-avatar color="#7C84D4" size="42" class="cursor-pointer">
+                <span class="text-white text-h6 font-weight-medium">N</span>
+              </v-avatar>
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-text>
+              <div class="mx-auto text-center">
+                <v-avatar color="#7C84D4" class="mb-3">
+                  <span class="text-white text-h6">N</span>
                 </v-avatar>
-              </v-btn>
-            </template>
-            <v-card>
-              <v-card-text>
-                <div class="mx-auto text-center">
-                  <v-avatar color="#7C84D4" class="mb-3">
-                    <span class="text-white text-h6">N</span>
-                  </v-avatar>
-                  <h3>Пользователь</h3>
-                  <p class="text-caption mt-1 text-grey">
-                    user@example.com
-                  </p>
-                  <v-divider class="my-3"></v-divider>
-                  <v-btn rounded variant="text" block color="red" @click="logout">
-                    Выйти
-                  </v-btn>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-menu>
-        </template>
+                <h3>Никита</h3>
+                <p class="text-caption text-grey">Владелец</p>
+                <v-divider class="my-3"></v-divider>
+                <v-btn rounded variant="text" block color="red" @click="handleLogout">
+                  Выйти
+                </v-btn>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-menu>
 
-        <!-- Если НЕ авторизован (Текст "Войти" и "Создать магазин") -->
-        <template v-else>
-          <router-link
-            to="/login"
-            class="text-white font-weight-bold text-body-1 text-decoration-none mr-6 hover-opacity"
-          >
-            Войти
-          </router-link>
-          <router-link
-            to="/login"
-            class="text-white font-weight-bold text-body-1 text-decoration-none hover-opacity"
-          >
-            Создать магазин
-          </router-link>
-        </template>
+        <v-btn v-else icon to="/login">
+          <v-avatar color="#7C84D4" size="42" class="cursor-pointer">
+            <span class="text-white text-h6 font-weight-medium">N</span>
+          </v-avatar>
+        </v-btn>
       </div>
-
     </v-app-bar>
 
-    <!-- === БОКОВОЕ МЕНЮ (Sidebar) === -->
+    <!-- === БОКОВОЕ МЕНЮ === -->
     <v-navigation-drawer
+      v-if="authStore.isAuthenticated"
       permanent
       color="#E0E0E0"
-      width="280"
-      class="border-none pt-6 px-3"
+      width="260"
+      class="border-none pt-4 px-3"
     >
-      <v-list class="bg-transparent">
-        <!-- Пункт: Главное -->
-        <v-list-item class="pa-0 mb-2" :ripple="false">
-          <router-link to="/dashboard" custom v-slot="{ navigate, isActive }">
-            <div
-              @click="navigate"
-              class="sidebar-item d-flex align-center px-4 py-3 rounded-lg cursor-pointer"
-              :class="{ 'active': isActive }"
-            >
-              <span class="font-weight-bold text-body-2 mr-auto">главное</span>
-              <v-icon icon="mdi-store" size="small"></v-icon>
+      <v-list class="bg-transparent" density="compact">
+
+        <!-- ГЛАВНАЯ -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <router-link to="/" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive && route.path === '/' }">
+              <v-icon icon="mdi-home-variant-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Главная</span>
             </div>
           </router-link>
         </v-list-item>
 
-        <v-divider class="mb-2 border-opacity-50" color="grey"></v-divider>
+        <!-- ЗАКАЗЫ (Пока ссылка-заглушка) -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-2">
+            <v-icon icon="mdi-tray-full" size="small" class="mr-3"></v-icon>
+            <span class="font-weight-bold text-body-2">Заказы</span>
+            <v-chip size="x-small" color="#7C84D4" class="ml-auto font-weight-bold text-white" variant="flat">0</v-chip>
+          </div>
+        </v-list-item>
 
-        <!-- Пункт: Каталог -->
-        <v-list-item class="pa-0 mb-2" :ripple="false">
+        <!-- ТОВАРЫ -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
           <router-link to="/catalog" custom v-slot="{ navigate, isActive }">
-            <div
-              @click="navigate"
-              class="sidebar-item d-flex align-center px-4 py-3 rounded-lg cursor-pointer"
-              :class="{ 'active': isActive }"
-            >
-              <span class="font-weight-bold text-body-2 mr-auto">каталог товаров</span>
-              <v-icon icon="mdi-storefront-outline" size="small"></v-icon>
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-tag-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Товары</span>
             </div>
           </router-link>
         </v-list-item>
 
-        <v-divider class="mb-2 border-opacity-50" color="grey"></v-divider>
+        <!-- КЛИЕНТЫ -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-2">
+            <v-icon icon="mdi-account-group-outline" size="small" class="mr-3"></v-icon>
+            <span class="font-weight-bold text-body-2">Клиенты</span>
+          </div>
+        </v-list-item>
 
-        <!-- Пункт: Конструктор -->
-        <v-list-item class="pa-0 mb-2" :ripple="false">
+        <!-- АНАЛИТИКА -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-2">
+            <v-icon icon="mdi-chart-bar" size="small" class="mr-3"></v-icon>
+            <span class="font-weight-bold text-body-2">Аналитика</span>
+          </div>
+        </v-list-item>
+
+        <div class="my-4 px-2 text-caption font-weight-bold text-grey">КАНАЛЫ ПРОДАЖ</div>
+
+        <!-- ОНЛАЙН МАГАЗИН (Конструктор) -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
           <router-link to="/builder" custom v-slot="{ navigate, isActive }">
-            <div
-              @click="navigate"
-              class="sidebar-item d-flex align-center px-4 py-3 rounded-lg cursor-pointer"
-              :class="{ 'active': isActive }"
-            >
-              <span class="font-weight-bold text-body-2">конструктор магазина</span>
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-store" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Онлайн-магазин</span>
+              <v-icon icon="mdi-eye-outline" size="14" class="ml-auto text-grey" title="Просмотр"></v-icon>
             </div>
           </router-link>
         </v-list-item>
+
       </v-list>
+
+      <!-- Настройки внизу -->
+      <template v-slot:append>
+        <div class="pa-4">
+          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-3">
+            <v-icon icon="mdi-cog-outline" size="small" class="mr-3"></v-icon>
+            <span class="font-weight-bold text-body-2">Настройки</span>
+          </div>
+        </div>
+      </template>
     </v-navigation-drawer>
 
     <!-- === ОСНОВНОЙ КОНТЕНТ === -->
@@ -162,65 +171,48 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 
+const route = useRoute();
 const router = useRouter();
-const isAuthenticated = ref(false);
+const authStore = useAuthStore();
 
-// Проверяем авторизацию при загрузке
-onMounted(() => {
-  isAuthenticated.value = localStorage.getItem('is_authenticated') === 'true';
-});
-
-const logout = () => {
-  localStorage.removeItem('is_authenticated');
-  isAuthenticated.value = false;
+const handleLogout = () => {
+  authStore.logout();
   router.push('/login');
 };
 </script>
 
 <style scoped lang="scss">
-/* Кастомные стили для поиска */
 .custom-search :deep(.v-field) {
   box-shadow: none !important;
   padding-right: 0 !important;
 }
-
-/* Выравнивание иконки поиска внутри инпута */
 .custom-search :deep(.v-field__append-inner) {
   padding-top: 0;
   align-items: center;
 }
-
-/* Эффект наведения на текстовые ссылки */
 .hover-opacity {
   transition: opacity 0.2s;
-  &:hover {
-    opacity: 0.8;
-  }
+  &:hover { opacity: 0.8; }
 }
-
-/* Стили для пунктов меню */
 .sidebar-item {
-  transition: all 0.2s ease;
-  color: #000;
+  transition: all 0.1s ease;
+  color: #333;
 
   &.active {
-    background-color: #4527A0;
-    color: white !important;
+    background-color: #e8eaf6; /* Светло-фиолетовый фон для активного */
+    color: #2A1A8E !important; /* Твой фирменный цвет */
 
     .v-icon {
-      color: white !important;
+      color: #2A1A8E !important;
     }
   }
 
   &:hover:not(.active) {
-    background-color: rgba(0,0,0,0.05);
+    background-color: rgba(0,0,0,0.04);
   }
 }
-
-.cursor-pointer {
-  cursor: pointer;
-}
+.cursor-pointer { cursor: pointer; }
 </style>

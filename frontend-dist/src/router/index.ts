@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import { useAuthStore } from '@/stores/auth' // Импортируем стор
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,34 +7,55 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('@/views/HomeView.vue'),
       meta: { requiresAuth: false }
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/LoginView.vue'),
+      component: () => import('@/views/LoginView.vue'),
       meta: { requiresAuth: false }
     },
-    // --- INTERNAL ROUTES ---
+    // --- ADMIN PANEL ROUTES ---
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: () => import('../views/DashboardView.vue'),
+      component: () => import('@/views/DashboardView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/catalog',
       name: 'catalog',
-      component: () => import('../views/CatalogView.vue'),
+      component: () => import('@/views/CatalogView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/builder',
       name: 'builder',
-      component: () => import('../views/BuilderView.vue'),
+      component: () => import('@/views/BuilderView.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/products/new',
+      name: 'product-new',
+      component: () => import('@/views/ProductFormView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/products/:id',
+      name: 'product-edit',
+      component: () => import('@/views/ProductFormView.vue'),
+      meta: { requiresAuth: true }
+    },
+
+    // --- STOREFRONT ROUTES ---
+    {
+      path: '/shop/preview',
+      name: 'shop-home',
+      component: () => import('@/views/shop/ShopHome.vue'),
+      meta: { requiresAuth: false }
+    },
+
     {
       path: '/:pathMatch(.*)*',
       redirect: '/'
@@ -42,27 +63,24 @@ const router = createRouter({
   ]
 })
 
-// --- NAVIGATION GUARD ---
+// === УМНАЯ ЗАЩИТА МАРШРУТОВ ===
 router.beforeEach((to, from, next) => {
-  // === TODO: UNCOMMENT WHEN BACKEND IS READY ===
+  const authStore = useAuthStore();
+  const isAuthenticated = authStore.isAuthenticated;
 
-  /*
-  const isAuthenticated = localStorage.getItem('is_authenticated') === 'true';
-
-  // 1. If route requires auth and user is not logged in -> redirect to login
+  // 1. Если маршрут требует входа, а юзер НЕ вошел -> на Логин
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login');
     return;
   }
 
-  // 2. If user is logged in and tries to access login -> redirect to dashboard
-  if (to.path === '/login' && isAuthenticated) {
+  // 2. Если юзер УЖЕ вошел и пытается открыть "Главную" или "Логин" -> в Дашборд
+  if ((to.path === '/' || to.path === '/login') && isAuthenticated) {
     next('/dashboard');
     return;
   }
-  */
 
-  // Temporarily allow everything
+  // 3. Иначе пускаем куда шел
   next();
 });
 
