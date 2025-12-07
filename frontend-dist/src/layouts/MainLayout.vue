@@ -100,13 +100,15 @@
           </router-link>
         </v-list-item>
 
-        <!-- ЗАКАЗЫ (Пока ссылка-заглушка) -->
+        <!-- ЗАКАЗЫ -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
-          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-2">
-            <v-icon icon="mdi-tray-full" size="small" class="mr-3"></v-icon>
-            <span class="font-weight-bold text-body-2">Заказы</span>
-            <v-chip size="x-small" color="#7C84D4" class="ml-auto font-weight-bold text-white" variant="flat">0</v-chip>
-          </div>
+          <router-link to="/orders" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-package-variant" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Заказы</span>
+              <v-chip size="x-small" color="red" class="ml-auto font-weight-bold text-white" variant="flat">4</v-chip>
+            </div>
+          </router-link>
         </v-list-item>
 
         <!-- ТОВАРЫ -->
@@ -119,33 +121,77 @@
           </router-link>
         </v-list-item>
 
-        <!-- КЛИЕНТЫ -->
+        <!-- КАТЕГОРИИ -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
-          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-2">
-            <v-icon icon="mdi-account-group-outline" size="small" class="mr-3"></v-icon>
-            <span class="font-weight-bold text-body-2">Клиенты</span>
-          </div>
+          <router-link to="/categories" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-folder-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Категории</span>
+            </div>
+          </router-link>
         </v-list-item>
 
-        <!-- АНАЛИТИКА -->
+        <!-- БРЕНДЫ -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
-          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-2">
-            <v-icon icon="mdi-chart-bar" size="small" class="mr-3"></v-icon>
-            <span class="font-weight-bold text-body-2">Аналитика</span>
-          </div>
+          <router-link to="/brands" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-tag-multiple-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Бренды</span>
+            </div>
+          </router-link>
+        </v-list-item>
+
+        <!-- НОВОСТИ -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <router-link to="/news" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-newspaper-variant-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Новости</span>
+            </div>
+          </router-link>
+        </v-list-item>
+
+        <!-- ПОЛЬЗОВАТЕЛИ -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <router-link to="/users" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-account-group-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Пользователи</span>
+            </div>
+          </router-link>
         </v-list-item>
 
         <div class="my-4 px-2 text-caption font-weight-bold text-grey">КАНАЛЫ ПРОДАЖ</div>
 
-        <!-- ОНЛАЙН МАГАЗИН (Конструктор) -->
+        <!-- ШАБЛОНЫ -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <router-link to="/themes" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-palette-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Шаблоны</span>
+            </div>
+          </router-link>
+        </v-list-item>
+
+        <!-- КОНСТРУКТОР -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
           <router-link to="/builder" custom v-slot="{ navigate, isActive }">
             <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-store" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Онлайн-магазин</span>
-              <v-icon icon="mdi-eye-outline" size="14" class="ml-auto text-grey" title="Просмотр"></v-icon>
+              <v-icon icon="mdi-pencil-ruler" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Конструктор</span>
             </div>
           </router-link>
+        </v-list-item>
+
+        <!-- МАГАЗИН (превью) -->
+        <v-list-item class="pa-0 mb-1" :ripple="false">
+          <a href="/shop/preview" target="_blank" class="text-decoration-none">
+            <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer">
+              <v-icon icon="mdi-store-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Открыть магазин</span>
+              <v-icon icon="mdi-open-in-new" size="14" class="ml-auto text-grey"></v-icon>
+            </div>
+          </a>
         </v-list-item>
 
       </v-list>

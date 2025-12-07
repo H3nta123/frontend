@@ -1,114 +1,125 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { api } from '@/services/api'
+
+interface User {
+  email: string
+  name: string
+  role: string
+}
+
+interface AuthConfirmResponse {
+  token?: string
+  user?: User
+}
 
 export const useAuthStore = defineStore('auth', () => {
-  // --- СОСТОЯНИЕ (STATE) ---
+  // === STATE ===
 
-  // ВРЕМЕННО: ставим true для разработки (чтобы видеть админку сразу)
-  const isAuthenticated = ref(true)
+  // Для разработки: true = пропускаем авторизацию
+  const useMocks = ref(true)
 
-  // Для продакшена (когда будет бэкенд) нужно раскомментировать эту строку и закомментировать верхнюю:
-  // const isAuthenticated = ref(localStorage.getItem('is_authenticated') === 'true')
+  const isAuthenticated = ref(
+    useMocks.value ? true : localStorage.getItem('is_authenticated') === 'true'
+  )
 
   const token = ref(localStorage.getItem('jwt_token') || null)
   const loading = ref(false)
   const error = ref('')
 
-  const user = ref({
+  const user = ref<User>({
     email: 'admin@example.com',
     name: 'Никита',
     role: 'owner'
   })
 
-  // --- ДЕЙСТВИЯ (ACTIONS) ---
+  // === ACTIONS ===
 
-  // 1. Отправка email для получения кода
-  const sendLoginRequest = async (email: string) => {
+  /**
+   * Отправка email для получения одноразового кода
+   * POST /api/v1/auth/login
+   * Body: { email: string }
+   */
+  const sendLoginRequest = async (email: string): Promise<boolean> => {
     loading.value = true
     error.value = ''
+
     try {
-      /*
-      // URL: https://b7ed89ec-b77d-4be3-a1ef-ee9df24158c9.tunnel4.com/api/v1/auth/login
-      const response = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(errData.detail || 'Ошибка запроса')
+      if (useMocks.value) {
+        // Имитация успешного ответа (задержка 1с)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        return true
       }
-      */
 
-      // Имитация успешного ответа сервера (задержка 1с)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await api.post('/auth/login', { email })
       return true
     } catch (e: any) {
-      console.error(e)
-      error.value = e.message || 'Ошибка сети'
+      console.error('sendLoginRequest error:', e)
+      error.value = e.message || 'Ошибка отправки кода'
       return false
     } finally {
       loading.value = false
     }
   }
 
-  // 2. Подтверждение кода
-  const verifyCode = async (email: string, code: string) => {
+  /**
+   * Подтверждение кода и получение токена
+   * POST /api/v1/auth/confirm
+   * Body: { email: string, code: string }
+   * Response: { token?: string, user?: User }
+   */
+  const verifyCode = async (email: string, code: string): Promise<boolean> => {
     loading.value = true
     error.value = ''
+
     try {
-      /*
-      // URL: https://b7ed89ec-b77d-4be3-a1ef-ee9df24158c9.tunnel4.com/api/v1/auth/confirm
-      const payload = {
-        email: email,
-        code: code
+      if (useMocks.value) {
+        // Имитация успешного входа
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        isAuthenticated.value = true
+        localStorage.setItem('is_authenticated', 'true')
+        user.value = {
+          email: email,
+          name: 'Пользователь',
+          role: 'owner'
+        }
+        return true
       }
 
-      const response = await fetch('/api/v1/auth/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const response = await api.post<AuthConfirmResponse>('/auth/confirm', {
+        email,
+        code
       })
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(errData.detail || 'Неверный код')
-      }
-
-      const userData = await response.json()
 
       // Успешный вход
       isAuthenticated.value = true
       localStorage.setItem('is_authenticated', 'true')
 
-      if (userData.token) {
-        token.value = userData.token
-        localStorage.setItem('jwt_token', userData.token)
+      // Сохраняем токен если получили
+      if (response.token) {
+        token.value = response.token
+        localStorage.setItem('jwt_token', response.token)
       }
 
-      if (userData.user) {
-        user.value = userData.user
+      // Сохраняем данные пользователя
+      if (response.user) {
+        user.value = response.user
       }
-      */
-
-      // Имитация успешного входа
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      isAuthenticated.value = true;
-      localStorage.setItem('is_authenticated', 'true');
 
       return true
     } catch (e: any) {
-      console.error(e)
-      error.value = e.message || 'Ошибка подтверждения'
+      console.error('verifyCode error:', e)
+      error.value = e.message || 'Неверный код'
       return false
     } finally {
       loading.value = false
     }
   }
 
-  // 3. Выход из системы
+  /**
+   * Выход из системы
+   */
   const logout = () => {
     token.value = null
     isAuthenticated.value = false
@@ -118,14 +129,31 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('jwt_token')
   }
 
+  /**
+   * Проверка авторизации при загрузке приложения
+   */
+  const checkAuth = () => {
+    const savedAuth = localStorage.getItem('is_authenticated')
+    const savedToken = localStorage.getItem('jwt_token')
+
+    if (savedAuth === 'true' && savedToken) {
+      isAuthenticated.value = true
+      token.value = savedToken
+    }
+  }
+
   return {
+    // State
     token,
     isAuthenticated,
     loading,
     error,
     user,
+    useMocks,
+    // Actions
     sendLoginRequest,
     verifyCode,
-    logout
+    logout,
+    checkAuth,
   }
 })

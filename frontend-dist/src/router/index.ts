@@ -24,15 +24,33 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/orders',
+      name: 'orders',
+      component: () => import('@/views/OrdersView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/catalog',
       name: 'catalog',
       component: () => import('@/views/CatalogView.vue'),
       meta: { requiresAuth: true }
     },
     {
+      path: '/categories',
+      name: 'categories',
+      component: () => import('@/views/CategoriesView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/builder',
       name: 'builder',
       component: () => import('@/views/BuilderView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/themes',
+      name: 'themes',
+      component: () => import('@/views/ThemesView.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -47,12 +65,60 @@ const router = createRouter({
       component: () => import('@/views/ProductFormView.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/brands',
+      name: 'brands',
+      component: () => import('@/views/BrandsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/news',
+      name: 'news',
+      component: () => import('@/views/NewsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/news/new',
+      name: 'news-new',
+      component: () => import('@/views/NewsFormView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/news/:id',
+      name: 'news-edit',
+      component: () => import('@/views/NewsFormView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('@/views/UsersView.vue'),
+      meta: { requiresAuth: true }
+    },
 
     // --- STOREFRONT ROUTES ---
     {
       path: '/shop/preview',
       name: 'shop-home',
       component: () => import('@/views/shop/ShopHome.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/shop/catalog',
+      name: 'shop-catalog',
+      component: () => import('@/views/shop/CatalogView.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/shop/product/:id',
+      name: 'shop-product',
+      component: () => import('@/views/shop/ProductView.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/shop/checkout',
+      name: 'shop-checkout',
+      component: () => import('@/views/shop/CheckoutView.vue'),
       meta: { requiresAuth: false }
     },
 
