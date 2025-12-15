@@ -47,29 +47,34 @@
           мои заказы
         </v-btn>
 
-        <v-menu v-if="authStore.isAuthenticated" min-width="200px" rounded offset-y>
+        <v-menu v-if="authStore.isAuthenticated">
           <template v-slot:activator="{ props }">
-            <v-btn icon v-bind="props">
-              <v-avatar color="#7C84D4" size="42" class="cursor-pointer">
-                <span class="text-white text-h6 font-weight-medium">N</span>
+            <v-btn icon v-bind="props" class="ml-2">
+              <v-avatar color="#7C84D4" size="42">
+                <span class="text-white text-h6 font-weight-medium">{{ (authStore.user?.name || authStore.user?.email || 'U').charAt(0).toUpperCase() }}</span>
               </v-avatar>
             </v-btn>
           </template>
-          <v-card>
-            <v-card-text>
-              <div class="mx-auto text-center">
-                <v-avatar color="#7C84D4" class="mb-3">
-                  <span class="text-white text-h6">N</span>
-                </v-avatar>
-                <h3>Никита</h3>
-                <p class="text-caption text-grey">Владелец</p>
-                <v-divider class="my-3"></v-divider>
-                <v-btn rounded variant="text" block color="red" @click="handleLogout">
-                  Выйти
-                </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
+          <v-list width="200" class="rounded-lg">
+            <v-list-item class="pb-2">
+              <template v-slot:prepend>
+                 <v-avatar color="#7C84D4" size="32" class="mr-2">
+                    <span class="text-white text-caption">{{ (authStore.user?.name || authStore.user?.email || 'U').charAt(0).toUpperCase() }}</span>
+                 </v-avatar>
+              </template>
+              <v-list-item-title class="font-weight-bold mb-1">{{ authStore.user?.name || authStore.user?.email }}</v-list-item-title>
+              <v-list-item-subtitle class="text-caption">Владелец</v-list-item-subtitle>
+            </v-list-item>
+            
+            <v-divider></v-divider>
+
+            <v-list-item @click="handleLogout" base-color="red" class="mt-1">
+              <template v-slot:prepend>
+                <v-icon icon="mdi-logout" size="small"></v-icon>
+              </template>
+              <v-list-item-title>Выйти</v-list-item-title>
+            </v-list-item>
+          </v-list>
         </v-menu>
 
         <v-btn v-else icon to="/login">
@@ -106,10 +111,12 @@
             <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
               <v-icon icon="mdi-package-variant" size="small" class="mr-3"></v-icon>
               <span class="font-weight-bold text-body-2">Заказы</span>
-              <v-chip size="x-small" color="red" class="ml-auto font-weight-bold text-white" variant="flat">4</v-chip>
             </div>
           </router-link>
         </v-list-item>
+
+
+
 
         <!-- ТОВАРЫ -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
@@ -162,6 +169,17 @@
         </v-list-item>
 
         <div class="my-4 px-2 text-caption font-weight-bold text-grey">КАНАЛЫ ПРОДАЖ</div>
+
+        <!-- МОЙ САЙТ (появляется если есть поддомен) -->
+        <v-list-item class="pa-0 mb-1" :ripple="false" v-if="shopStore.settings.subdomain">
+          <a :href="`http://${shopStore.settings.subdomain}.localhost:3000/shop/preview`" target="_blank" class="text-decoration-none">
+            <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer">
+              <v-icon icon="mdi-web" size="small" class="mr-3" color="#4527A0"></v-icon>
+              <span class="font-weight-bold text-body-2">{{ shopStore.settings.subdomain }}.localhost</span>
+              <v-icon icon="mdi-open-in-new" size="14" class="ml-auto text-grey"></v-icon>
+            </div>
+          </a>
+        </v-list-item>
 
         <!-- ШАБЛОНЫ -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
@@ -219,10 +237,12 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { useShopStore } from '@/stores/shop';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const shopStore = useShopStore();
 
 const handleLogout = () => {
   authStore.logout();

@@ -22,18 +22,8 @@ export interface CategoryTreeNode extends Category {
 }
 
 // Для разработки — мок данные
-const MOCK_CATEGORIES: Category[] = [
-    { id: 1, name: 'Одежда', parentId: null },
-    { id: 2, name: 'Обувь', parentId: null },
-    { id: 3, name: 'Аксессуары', parentId: null },
-    { id: 4, name: 'Футболки', parentId: 1 },
-    { id: 5, name: 'Джинсы', parentId: 1 },
-    { id: 6, name: 'Худи', parentId: 1 },
-    { id: 7, name: 'Кроссовки', parentId: 2 },
-    { id: 8, name: 'Ботинки', parentId: 2 },
-    { id: 9, name: 'Сумки', parentId: 3 },
-    { id: 10, name: 'Кепки', parentId: 3 },
-]
+// Для разработки — мок данные
+const MOCK_CATEGORIES: Category[] = []
 
 export const useCategoriesStore = defineStore('categories', () => {
     // === STATE ===

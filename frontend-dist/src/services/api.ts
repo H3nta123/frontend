@@ -2,7 +2,7 @@
  * API Service - базовый клиент для работы с бэкендом
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE_URL = '/api/v1';
 
 interface ApiResponse<T> {
     data: T;
@@ -68,7 +68,8 @@ class ApiService {
             throw new Error(error.detail || error.message || 'Ошибка запроса');
         }
 
-        return response.json();
+        const text = await response.text();
+        return text ? JSON.parse(text) : {};
     }
 
     async patch<T>(endpoint: string, data: unknown): Promise<T> {

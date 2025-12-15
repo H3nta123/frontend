@@ -21,13 +21,8 @@ export interface UserFormData {
 }
 
 // Мок данные для разработки
-const MOCK_USERS: User[] = [
-    { id: 1, email: 'admin@example.com', name: 'Никита', role: 'admin', isActive: true, createdAt: '2024-01-15T10:00:00Z' },
-    { id: 2, email: 'manager@example.com', name: 'Алексей', role: 'manager', isActive: true, createdAt: '2024-03-20T14:30:00Z' },
-    { id: 3, email: 'user1@example.com', name: 'Мария', role: 'customer', isActive: true, createdAt: '2024-06-10T09:00:00Z' },
-    { id: 4, email: 'user2@example.com', name: 'Иван', role: 'customer', isActive: false, createdAt: '2024-08-05T16:45:00Z' },
-    { id: 5, email: 'user3@example.com', name: 'Елена', role: 'customer', isActive: true, createdAt: '2024-11-01T11:20:00Z' },
-]
+// Мок данные для разработки
+const MOCK_USERS: User[] = []
 
 export const useUsersStore = defineStore('users', () => {
     // === STATE ===

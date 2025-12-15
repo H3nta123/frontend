@@ -32,74 +32,7 @@ export interface Order {
 }
 
 // Мок данные
-const MOCK_ORDERS: Order[] = [
-    {
-        id: 1,
-        orderNumber: '100001',
-        status: 'new',
-        items: [
-            { productId: 1, name: 'Футболка Oversize', price: 2500, quantity: 2 },
-            { productId: 2, name: 'Кепка Brand', price: 1200, quantity: 1 }
-        ],
-        subtotal: 6200,
-        deliveryPrice: 350,
-        total: 6550,
-        deliveryMethod: 'Курьер',
-        customerName: 'Иван Петров',
-        customerPhone: '+7 (999) 123-45-67',
-        customerEmail: 'ivan@example.com',
-        address: 'г. Москва, ул. Примерная, д. 1',
-        createdAt: '2024-12-07T10:30:00Z'
-    },
-    {
-        id: 2,
-        orderNumber: '100002',
-        status: 'processing',
-        items: [
-            { productId: 3, name: 'Худи Streetwear', price: 4500, quantity: 1 }
-        ],
-        subtotal: 4500,
-        deliveryPrice: 0,
-        total: 4500,
-        deliveryMethod: 'Самовывоз',
-        customerName: 'Мария Сидорова',
-        customerPhone: '+7 (999) 987-65-43',
-        createdAt: '2024-12-06T15:00:00Z'
-    },
-    {
-        id: 3,
-        orderNumber: '100003',
-        status: 'shipped',
-        items: [
-            { productId: 4, name: 'Джинсы Regular', price: 3800, quantity: 1 },
-            { productId: 5, name: 'Кроссовки Classic', price: 7200, quantity: 1 }
-        ],
-        subtotal: 11000,
-        deliveryPrice: 450,
-        total: 11450,
-        deliveryMethod: 'СДЭК',
-        customerName: 'Алексей Козлов',
-        customerPhone: '+7 (999) 555-44-33',
-        address: 'г. Санкт-Петербург, пр. Ленина, д. 50',
-        createdAt: '2024-12-05T09:15:00Z'
-    },
-    {
-        id: 4,
-        orderNumber: '100004',
-        status: 'delivered',
-        items: [
-            { productId: 6, name: 'Сумка Urban', price: 2900, quantity: 1 }
-        ],
-        subtotal: 2900,
-        deliveryPrice: 300,
-        total: 3200,
-        deliveryMethod: 'Почта России',
-        customerName: 'Елена Новикова',
-        customerPhone: '+7 (999) 222-11-00',
-        address: 'г. Казань, ул. Баумана, д. 10',
-        createdAt: '2024-12-01T12:00:00Z'
-    },
-]
+const MOCK_ORDERS: Order[] = []
 
 export const useOrdersStore = defineStore('orders', () => {
     // === STATE ===

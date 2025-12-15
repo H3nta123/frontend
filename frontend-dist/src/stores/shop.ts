@@ -15,6 +15,7 @@ export interface ShopTheme {
 export interface ShopSettings {
   // Общие
   name: string
+  subdomain?: string
   logoUrl: string
 
   // Цвета
@@ -52,6 +53,7 @@ export interface ShopSettings {
 // Дефолтные настройки
 const DEFAULT_SETTINGS: ShopSettings = {
   name: 'Мой Магазин',
+  subdomain: '',
   logoUrl: '',
   primaryColor: '#4527A0',
   secondaryColor: '#7C4DFF',
@@ -241,6 +243,44 @@ export const useShopStore = defineStore('shop', () => {
     localStorage.setItem('shop_theme_id', currentThemeId.value)
   }
 
+  // Загрузка конфига с бэкенда (для лайв-сайта)
+  const fetchSiteConfig = async () => {
+    try {
+      const response = await fetch('/site-config');
+      if (response.ok) {
+        // Проверяем тип контента, если JSON - парсим
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          const remoteSettings = await response.json();
+          // Если бэкенд возвращает структуру конфига
+          if (remoteSettings && remoteSettings.config) {
+            settings.value = remoteSettings.config;
+            if (remoteSettings.pattern) {
+              currentThemeId.value = remoteSettings.pattern;
+            }
+          } else if (remoteSettings) {
+            // Fallback если возвращает сразу settings
+            // settings.value = { ...DEFAULT_SETTINGS, ...remoteSettings };
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch site config:', e);
+    }
+  }
+
+  // При инициализации проверяем поддомен
+  if (window.location.host.split('.').length > 2 && !window.location.host.startsWith('localhost')) {
+    // Это поддомен (но для localhost это работает криво, см. ниже)
+  }
+  // Более надежная проверка для dev
+  const host = window.location.host;
+  const isSubdomain = host.includes('localhost:3000') && host.split('.').length > 2;
+
+  if (isSubdomain) {
+    fetchSiteConfig();
+  }
+
   // Авто-сохранение при изменениях
   watch(settings, (newVal) => {
     localStorage.setItem('shop_settings', JSON.stringify(newVal))
@@ -268,5 +308,18 @@ export const useShopStore = defineStore('shop', () => {
     applyTheme,
     updateSettings,
     saveSettings,
+    fetchSiteConfig,
   }
 })
+
+function getSubdomain() {
+  const host = window.location.host;
+  if (host.includes('localhost:3000')) {
+    const parts = host.split('.');
+    if (parts.length > 2) { // e.g. test.localhost:3000
+      return parts[0];
+    }
+  }
+  // Add production domain logic here if needed
+  return null;
+}

@@ -83,12 +83,14 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-  },
-  server: {
     proxy: {
       '/api': {
-        // Вставь сюда свой НОВЫЙ адрес туннеля:
-        target: 'http://85c0bec9-7bd4-4e64-a9f5-1ae68fbc6372.tunnel4.com',
+        target: 'http://433b8056-c637-4bf0-9121-044859c7fb2a.tunnel4.com/',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/site-config': {
+        target: 'http://433b8056-c637-4bf0-9121-044859c7fb2a.tunnel4.com/',
         changeOrigin: true,
         secure: false,
       }

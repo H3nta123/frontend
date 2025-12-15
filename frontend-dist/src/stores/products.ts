@@ -167,7 +167,12 @@ export const useProductsStore = defineStore('products', () => {
                 await new Promise(resolve => setTimeout(resolve, 300))
                 const index = MOCK_PRODUCTS.findIndex(p => p.id === id)
                 if (index !== -1) {
-                    MOCK_PRODUCTS[index] = { ...MOCK_PRODUCTS[index], ...data, updatedAt: new Date().toISOString() }
+                    const updatedProduct: Product = {
+                        ...MOCK_PRODUCTS[index],
+                        ...data,
+                        updatedAt: new Date().toISOString()
+                    } as Product
+                    MOCK_PRODUCTS[index] = updatedProduct
                     products.value = [...MOCK_PRODUCTS]
                     return MOCK_PRODUCTS[index]
                 }

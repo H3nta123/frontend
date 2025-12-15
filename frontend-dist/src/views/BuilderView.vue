@@ -27,6 +27,17 @@
         >
           Сохранить
         </v-btn>
+        <v-btn
+          v-if="currentSiteId"
+          color="blue"
+          variant="flat"
+          class="text-white text-none font-weight-bold px-6"
+          rounded="lg"
+          @click="publishSite"
+          :loading="publishing"
+        >
+          Опубликовать
+        </v-btn>
       </div>
     </div>
 
@@ -51,6 +62,17 @@
                 density="compact"
                 hide-details="auto"
                 class="mb-4"
+              ></v-text-field>
+
+              <label class="text-caption font-weight-bold text-grey-darken-1 mb-1 d-block">Поддомен (URL сайта)</label>
+              <v-text-field
+                v-model="shopStore.settings.subdomain"
+                variant="outlined"
+                density="compact"
+                hide-details="auto"
+                class="mb-4"
+                suffix=".myshop.com"
+                placeholder="example"
               ></v-text-field>
 
               <label class="text-caption font-weight-bold text-grey-darken-1 mb-1 d-block">URL логотипа</label>
@@ -290,21 +312,58 @@
 import { ref, defineComponent, h } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { useShopStore } from '@/stores/shop'
+import { sitesService } from '@/services/sites'
 
 const shopStore = useShopStore()
 const saving = ref(false)
+const publishing = ref(false)
+const currentSiteId = ref<string>('') // ID сохраненного сайта
 const viewMode = ref('desktop')
 const openedPanels = ref(['general', 'colors', 'hero'])
 const previewFrame = ref<HTMLIFrameElement | null>(null)
 
 // Сохранение
-const saveChanges = () => {
-  saving.value = true
-  shopStore.saveSettings()
-  setTimeout(() => {
-    saving.value = false
-  }, 600)
-}
+// Сохранение
+
+  // Сохранение
+  const saveChanges = async () => {
+    saving.value = true
+    try {
+
+      const payload = {
+        subdomain: shopStore.settings.subdomain?.toLowerCase().replace(/\s+/g, '-') || shopStore.settings.name.toLowerCase().replace(/\s+/g, '-') || 'myshop',
+        pattern: shopStore.currentThemeId, // Mapping theme_id to pattern
+        config: shopStore.settings
+      }
+      
+      const response = await sitesService.saveSite(payload)
+      if (response && response.id) {
+        currentSiteId.value = response.id
+        // Можно показать уведомление "Черновик сохранен"
+      }
+    } catch (e) {
+      console.error(e)
+      // Показать ошибку
+    } finally {
+      saving.value = false
+    }
+  }
+
+  // Публикация
+  const publishSite = async () => {
+    if (!currentSiteId.value) return
+    publishing.value = true
+    try {
+      await sitesService.publishSite(currentSiteId.value)
+      // Уведомление об успехе
+      alert('Сайт успешно опубликован!')
+    } catch (e) {
+      console.error(e)
+      alert('Ошибка публикации')
+    } finally {
+      publishing.value = false
+    }
+  }
 
 // Обновить превью
 const refreshPreview = () => {

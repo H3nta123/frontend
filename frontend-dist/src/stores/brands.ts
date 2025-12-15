@@ -19,13 +19,7 @@ export interface BrandFormData {
 }
 
 // Мок данные для разработки
-const MOCK_BRANDS: Brand[] = [
-    { id: 1, name: 'Nike', description: 'Американский производитель спортивной одежды', logoUrl: '' },
-    { id: 2, name: 'Adidas', description: 'Немецкий производитель спортивных товаров', logoUrl: '' },
-    { id: 3, name: 'Puma', description: 'Немецкий производитель спортивной одежды и обуви', logoUrl: '' },
-    { id: 4, name: 'Reebok', description: 'Производитель спортивной обуви и одежды', logoUrl: '' },
-    { id: 5, name: 'New Balance', description: 'Американский производитель спортивной обуви', logoUrl: '' },
-]
+const MOCK_BRANDS: Brand[] = []
 
 export const useBrandsStore = defineStore('brands', () => {
     // === STATE ===

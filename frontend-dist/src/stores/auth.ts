@@ -9,29 +9,22 @@ interface User {
 }
 
 interface AuthConfirmResponse {
-  token?: string
-  user?: User
+  accessToken: string
+  token_type: string
+  expires_in: number
 }
 
 export const useAuthStore = defineStore('auth', () => {
   // === STATE ===
 
-  // Для разработки: true = пропускаем авторизацию
-  const useMocks = ref(true)
-
-  const isAuthenticated = ref(
-    useMocks.value ? true : localStorage.getItem('is_authenticated') === 'true'
-  )
+  const isAuthenticated = ref(localStorage.getItem('is_authenticated') === 'true')
 
   const token = ref(localStorage.getItem('jwt_token') || null)
   const loading = ref(false)
   const error = ref('')
 
-  const user = ref<User>({
-    email: 'admin@example.com',
-    name: 'Никита',
-    role: 'owner'
-  })
+  const savedEmail = localStorage.getItem('user_email')
+  const user = ref<User | null>(savedEmail ? { email: savedEmail, name: savedEmail, role: 'owner' } : null)
 
   // === ACTIONS ===
 
@@ -45,11 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = ''
 
     try {
-      if (useMocks.value) {
-        // Имитация успешного ответа (задержка 1с)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        return true
-      }
+
 
       await api.post('/auth/login', { email })
       return true
@@ -73,19 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = ''
 
     try {
-      if (useMocks.value) {
-        // Имитация успешного входа
-        await new Promise(resolve => setTimeout(resolve, 1000))
 
-        isAuthenticated.value = true
-        localStorage.setItem('is_authenticated', 'true')
-        user.value = {
-          email: email,
-          name: 'Пользователь',
-          role: 'owner'
-        }
-        return true
-      }
 
       const response = await api.post<AuthConfirmResponse>('/auth/confirm', {
         email,
@@ -96,16 +73,19 @@ export const useAuthStore = defineStore('auth', () => {
       isAuthenticated.value = true
       localStorage.setItem('is_authenticated', 'true')
 
-      // Сохраняем токен если получили
-      if (response.token) {
-        token.value = response.token
-        localStorage.setItem('jwt_token', response.token)
+      // Бэкенд возвращает { accessToken, token_type, expires_in }
+      if (response.accessToken) {
+        token.value = response.accessToken
+        localStorage.setItem('jwt_token', response.accessToken)
       }
 
-      // Сохраняем данные пользователя
-      if (response.user) {
-        user.value = response.user
+      // Обновляем email
+      user.value = {
+        email: email,
+        name: email,
+        role: 'owner'
       }
+      localStorage.setItem('user_email', email)
 
       return true
     } catch (e: any) {
@@ -149,7 +129,6 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     error,
     user,
-    useMocks,
     // Actions
     sendLoginRequest,
     verifyCode,

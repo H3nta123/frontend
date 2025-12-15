@@ -21,29 +21,7 @@ export interface NewsFormData {
 }
 
 // Мок данные для разработки
-const MOCK_NEWS: NewsItem[] = [
-    {
-        id: 1,
-        title: 'Открытие нового магазина',
-        content: 'Рады сообщить об открытии нашего нового магазина в центре города!',
-        isPublished: true,
-        createdAt: '2024-12-01T10:00:00Z'
-    },
-    {
-        id: 2,
-        title: 'Зимняя распродажа',
-        content: 'С 15 декабря стартует большая зимняя распродажа. Скидки до 50%!',
-        isPublished: true,
-        createdAt: '2024-12-05T14:30:00Z'
-    },
-    {
-        id: 3,
-        title: 'Новая коллекция весна 2025',
-        content: 'Скоро в продаже новая коллекция весна-лето 2025.',
-        isPublished: false,
-        createdAt: '2024-12-07T09:00:00Z'
-    },
-]
+const MOCK_NEWS: NewsItem[] = []
 
 export const useNewsStore = defineStore('news', () => {
     // === STATE ===
