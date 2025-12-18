@@ -202,12 +202,7 @@ export const useShopStore = defineStore('shop', () => {
 
   // Моковые товары магазина
   const products = ref([
-    { id: 1, name: 'Футболка Oversize', price: 2500, image: '' },
-    { id: 2, name: 'Кепка Brand', price: 1200, image: '' },
-    { id: 3, name: 'Худи Streetwear', price: 4500, image: '' },
-    { id: 4, name: 'Джинсы Regular', price: 3800, image: '' },
-    { id: 5, name: 'Кроссовки Classic', price: 7200, image: '' },
-    { id: 6, name: 'Сумка Urban', price: 2900, image: '' },
+
   ])
 
   // Является ли тема тёмной
@@ -274,8 +269,11 @@ export const useShopStore = defineStore('shop', () => {
     // Это поддомен (но для localhost это работает криво, см. ниже)
   }
   // Более надежная проверка для dev
+  // Более надежная проверка для dev
   const host = window.location.host;
-  const isSubdomain = host.includes('localhost:3000') && host.split('.').length > 2;
+  // Для localhost:3000 subdomain.localhost:3000 дает split length 2 ('subdomain', 'localhost:3000')
+  // Для продакшена или myshop.com это будет 3 ('subdomain', 'myshop', 'com')
+  const isSubdomain = host.includes('localhost:3000') ? host.split('.').length >= 2 : host.split('.').length > 2;
 
   if (isSubdomain) {
     fetchSiteConfig();

@@ -85,15 +85,54 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://433b8056-c637-4bf0-9121-044859c7fb2a.tunnel4.com/',
+        target: 'http://31dd2928-f665-4aba-9ad7-69622142e81b.tunnel4.com/',
         changeOrigin: true,
         secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            const host = req.headers.host
+            if (host) {
+              const parts = host.split('.')
+              // Извлекаем всё, что до первой точки
+              const sub = parts[0]
+              if (parts.length >= 2 && sub !== 'localhost' && sub !== '127') {
+                console.log(`[Vite Proxy API] Host: ${host} -> X-Subdomain: ${sub}`)
+                proxyReq.setHeader('X-Subdomain', sub)
+              } else {
+                console.log(`[Vite Proxy API] Host: ${host} -> No subdomain detected`)
+              }
+              const backendHost = host.replace(':3000', ':8080')
+              proxyReq.setHeader('X-Forwarded-Host', backendHost)
+            }
+          })
+        },
       },
       '/site-config': {
-        target: 'http://433b8056-c637-4bf0-9121-044859c7fb2a.tunnel4.com/',
+        target: 'http://31dd2928-f665-4aba-9ad7-69622142e81b.tunnel4.com/',
         changeOrigin: true,
         secure: false,
-      }
+        // Убрали rewrite: '/', так как это могло ломать путь к эндпоинту
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            const host = req.headers.host
+            if (host) {
+              const parts = host.split('.')
+              const sub = parts[0]
+              if (parts.length >= 2 && sub !== 'localhost' && sub !== '127') {
+                console.log(`[Vite Proxy SiteConfig] Host: ${host} -> X-Subdomain: ${sub}`)
+                proxyReq.setHeader('X-Subdomain', sub)
+              } else {
+                console.log(`[Vite Proxy SiteConfig] Host: ${host} -> No subdomain detected`)
+              }
+              const backendHost = host.replace(':3000', ':8080')
+              proxyReq.setHeader('X-Forwarded-Host', backendHost)
+            }
+          })
+          proxy.on('error', (err, req, res) => {
+            console.error('[Vite Proxy Error]', err)
+          })
+        },
+      },
     }
   }
 })
