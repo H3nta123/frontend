@@ -85,7 +85,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://31dd2928-f665-4aba-9ad7-69622142e81b.tunnel4.com/',
+        target: 'http://98a612ff-6a98-4687-82d3-ea54b73b0455.tunnel4.com/',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
@@ -108,7 +108,7 @@ export default defineConfig({
         },
       },
       '/site-config': {
-        target: 'http://31dd2928-f665-4aba-9ad7-69622142e81b.tunnel4.com/',
+        target: 'http://98a612ff-6a98-4687-82d3-ea54b73b0455.tunnel4.com/',
         changeOrigin: true,
         secure: false,
         // Убрали rewrite: '/', так как это могло ломать путь к эндпоинту
