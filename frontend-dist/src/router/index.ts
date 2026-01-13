@@ -36,9 +36,9 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/categories',
-      name: 'categories',
-      component: () => import('@/views/CategoriesView.vue'),
+      path: '/stores',
+      name: 'stores',
+      component: () => import('@/views/StoresView.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -71,30 +71,7 @@ const router = createRouter({
       component: () => import('@/views/BrandsView.vue'),
       meta: { requiresAuth: true }
     },
-    {
-      path: '/news',
-      name: 'news',
-      component: () => import('@/views/NewsView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/news/new',
-      name: 'news-new',
-      component: () => import('@/views/NewsFormView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/news/:id',
-      name: 'news-edit',
-      component: () => import('@/views/NewsFormView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/users',
-      name: 'users',
-      component: () => import('@/views/UsersView.vue'),
-      meta: { requiresAuth: true }
-    },
+
 
     // --- STOREFRONT ROUTES ---
     {

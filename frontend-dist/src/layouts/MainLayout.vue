@@ -1,74 +1,56 @@
 <template>
   <v-app>
     <!-- === ШАПКА (Header) === -->
-    <v-app-bar color="#2A1A8E" height="64" flat class="px-4">
+    <v-app-bar color="white" height="64" flat class="px-4 border-b">
       <!-- Логотип -->
-      <div class="d-flex align-center mr-6">
-        <v-avatar color="white" size="40">
-          <v-icon icon="mdi-cart-outline" color="black" size="24"></v-icon>
-        </v-avatar>
+      <div class="d-flex align-center mr-8">
+        <div class="d-flex align-center justify-center rounded-lg bg-indigo-lighten-5 pa-2">
+          <v-icon icon="mdi-store" color="#2A1A8E" size="24"></v-icon>
+        </div>
+        <span class="ml-3 text-h6 font-weight-bold text-grey-darken-4">ShopBuilder</span>
       </div>
 
-      <v-spacer></v-spacer>
-
       <!-- Поиск -->
-      <v-responsive max-width="600" class="mx-4 w-100">
+      <v-responsive max-width="400" class="mr-4">
         <v-text-field
           density="compact"
-          variant="solo"
-          placeholder="Поиск по заказам, товарам..."
+          variant="outlined"
+          placeholder="Поиск..."
           single-line
           hide-details
           rounded="lg"
-          bg-color="white"
+          bg-color="grey-lighten-4"
+          base-color="transparent"
           class="custom-search"
-          height="40"
-        >
-          <template v-slot:append-inner>
-            <div class="d-flex align-center justify-center ml-2" style="height: 100%;">
-              <v-icon icon="mdi-magnify" color="black" size="24"></v-icon>
-            </div>
-          </template>
-        </v-text-field>
+          prepend-inner-icon="mdi-magnify"
+        ></v-text-field>
       </v-responsive>
 
       <v-spacer></v-spacer>
 
       <!-- Меню профиля -->
-      <div class="d-flex align-center">
-        <!-- Кнопка "Мои заказы" (Видна всегда) -->
-        <v-btn
-          class="text-none mr-4 px-6 font-weight-medium text-body-2"
-          color="#7C84D4"
-          variant="flat"
-          rounded="pill"
-          height="36"
-        >
-          мои заказы
+      <div class="d-flex align-center gap-2">
+        <v-btn icon color="grey-darken-1" variant="text">
+          <v-icon>mdi-bell-outline</v-icon>
         </v-btn>
+        
+        <v-divider vertical class="mx-2 h-50"></v-divider>
 
         <v-menu v-if="authStore.isAuthenticated">
           <template v-slot:activator="{ props }">
-            <v-btn icon v-bind="props" class="ml-2">
-              <v-avatar color="#7C84D4" size="42">
-                <span class="text-white text-h6 font-weight-medium">{{ (authStore.user?.name || authStore.user?.email || 'U').charAt(0).toUpperCase() }}</span>
-              </v-avatar>
+            <v-btn variant="text" class="text-none pl-2 pr-4" rounded="pill" v-bind="props">
+               <v-avatar color="#E8EAF6" size="32" class="mr-2">
+                 <span class="text-indigo-darken-3 text-subtitle-2 font-weight-bold">{{ (authStore.user?.name || authStore.user?.email || 'U').charAt(0).toUpperCase() }}</span>
+               </v-avatar>
+               <div class="d-flex flex-column align-start">
+                 <span class="text-body-2 font-weight-bold text-grey-darken-3 line-height-1">{{ authStore.user?.name || 'User' }}</span>
+                 <span class="text-caption text-grey">Владелец</span>
+               </div>
+               <v-icon icon="mdi-chevron-down" size="small" class="ml-2 text-grey"></v-icon>
             </v-btn>
           </template>
-          <v-list width="200" class="rounded-lg">
-            <v-list-item class="pb-2">
-              <template v-slot:prepend>
-                 <v-avatar color="#7C84D4" size="32" class="mr-2">
-                    <span class="text-white text-caption">{{ (authStore.user?.name || authStore.user?.email || 'U').charAt(0).toUpperCase() }}</span>
-                 </v-avatar>
-              </template>
-              <v-list-item-title class="font-weight-bold mb-1">{{ authStore.user?.name || authStore.user?.email }}</v-list-item-title>
-              <v-list-item-subtitle class="text-caption">Владелец</v-list-item-subtitle>
-            </v-list-item>
-            
-            <v-divider></v-divider>
-
-            <v-list-item @click="handleLogout" base-color="red" class="mt-1">
+          <v-list width="200" class="rounded-lg elevation-4">
+            <v-list-item @click="handleLogout" class="text-red">
               <template v-slot:prepend>
                 <v-icon icon="mdi-logout" size="small"></v-icon>
               </template>
@@ -76,12 +58,6 @@
             </v-list-item>
           </v-list>
         </v-menu>
-
-        <v-btn v-else icon to="/login">
-          <v-avatar color="#7C84D4" size="42" class="cursor-pointer">
-            <span class="text-white text-h6 font-weight-medium">N</span>
-          </v-avatar>
-        </v-btn>
       </div>
     </v-app-bar>
 
@@ -118,68 +94,17 @@
 
 
 
-        <!-- ТОВАРЫ -->
+        <!-- МАГАЗИНЫ -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
-          <router-link to="/catalog" custom v-slot="{ navigate, isActive }">
+          <router-link to="/stores" custom v-slot="{ navigate, isActive }">
             <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-tag-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Товары</span>
+              <v-icon icon="mdi-store-cog-outline" size="small" class="mr-3"></v-icon>
+              <span class="font-weight-bold text-body-2">Магазины</span>
             </div>
           </router-link>
         </v-list-item>
 
-        <!-- КАТЕГОРИИ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
-          <router-link to="/categories" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-folder-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Категории</span>
-            </div>
-          </router-link>
-        </v-list-item>
 
-        <!-- БРЕНДЫ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
-          <router-link to="/brands" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-tag-multiple-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Бренды</span>
-            </div>
-          </router-link>
-        </v-list-item>
-
-        <!-- НОВОСТИ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
-          <router-link to="/news" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-newspaper-variant-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Новости</span>
-            </div>
-          </router-link>
-        </v-list-item>
-
-        <!-- ПОЛЬЗОВАТЕЛИ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
-          <router-link to="/users" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-account-group-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Пользователи</span>
-            </div>
-          </router-link>
-        </v-list-item>
-
-        <div class="my-4 px-2 text-caption font-weight-bold text-grey">КАНАЛЫ ПРОДАЖ</div>
-
-        <!-- МОЙ САЙТ (появляется если есть поддомен) -->
-        <v-list-item class="pa-0 mb-1" :ripple="false" v-if="shopStore.settings.subdomain">
-          <a :href="`http://${shopStore.settings.subdomain}.localhost:3000/shop/preview`" target="_blank" class="text-decoration-none">
-            <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer">
-              <v-icon icon="mdi-web" size="small" class="mr-3" color="#4527A0"></v-icon>
-              <span class="font-weight-bold text-body-2">{{ shopStore.settings.subdomain }}.localhost</span>
-              <v-icon icon="mdi-open-in-new" size="14" class="ml-auto text-grey"></v-icon>
-            </div>
-          </a>
-        </v-list-item>
 
         <!-- ШАБЛОНЫ -->
         <v-list-item class="pa-0 mb-1" :ripple="false">
@@ -191,26 +116,7 @@
           </router-link>
         </v-list-item>
 
-        <!-- КОНСТРУКТОР -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
-          <router-link to="/builder" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-pencil-ruler" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Конструктор</span>
-            </div>
-          </router-link>
-        </v-list-item>
 
-        <!-- МАГАЗИН (превью) -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
-          <a href="/shop/preview" target="_blank" class="text-decoration-none">
-            <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer">
-              <v-icon icon="mdi-store-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Открыть магазин</span>
-              <v-icon icon="mdi-open-in-new" size="14" class="ml-auto text-grey"></v-icon>
-            </div>
-          </a>
-        </v-list-item>
 
       </v-list>
 

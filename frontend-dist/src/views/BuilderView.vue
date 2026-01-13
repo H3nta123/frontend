@@ -4,7 +4,7 @@
     <div class="d-flex justify-space-between align-center mb-4" style="height: 48px;">
       <div class="d-flex align-center">
         <v-btn icon="mdi-arrow-left" variant="text" to="/themes" class="mr-2"></v-btn>
-        <h1 class="text-h6 font-weight-bold m-0">Редактор: {{ shopStore.currentTheme.name }}</h1>
+        <h1 class="text-h6 font-weight-bold m-0">Редактор: {{ shopStore.currentTheme?.name }}</h1>
         <v-chip size="x-small" color="green" class="ml-3 font-weight-bold" label>Live</v-chip>
       </div>
 
@@ -50,6 +50,38 @@
       <div class="bg-white border-r d-flex flex-column" style="width: 340px; overflow-y: auto;">
 
         <v-expansion-panels flat variant="accordion" multiple v-model="openedPanels">
+
+          <!-- Секция: Товары (Новое!) -->
+          <v-expansion-panel value="products">
+            <v-expansion-panel-title class="font-weight-bold">Товары</v-expansion-panel-title>
+            <v-expansion-panel-text>
+               <v-btn
+                 block
+                 color="#2A1A8E"
+                 class="text-none text-white mb-4"
+                 prepend-icon="mdi-plus"
+                 @click="navigateToNewProduct"
+               >
+                 Добавить товар
+               </v-btn>
+
+               <div v-for="product in builderProducts" :key="product.id" @click="navigateToProduct(product.id)" class="d-flex align-center pa-2 border rounded mb-2 hover-bg cursor-pointer">
+                 <v-avatar size="40" color="grey-lighten-2" rounded>
+                   <v-icon icon="mdi-tshirt-crew" color="grey"></v-icon>
+                 </v-avatar>
+                 <div class="ml-3">
+                   <div class="text-body-2 font-weight-bold text-truncate" style="max-width: 140px;">{{ product.name }}</div>
+                   <div class="text-caption text-grey">{{ product.price }} ₽</div>
+                 </div>
+                 <v-spacer></v-spacer>
+                 <v-btn icon variant="text" size="x-small" color="grey"><v-icon>mdi-pencil</v-icon></v-btn>
+               </div>
+
+               <v-btn variant="text" size="small" block class="text-none text-grey mt-2" @click="resetIframe">
+                 Вернуться к просмотру сайта
+               </v-btn>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
 
           <!-- Секция: Общие настройки -->
           <v-expansion-panel value="general">
@@ -296,7 +328,7 @@
         >
           <iframe
             id="store-preview"
-            src="/shop/preview"
+            :src="iframeSrc"
             frameborder="0"
             class="w-100 h-100"
             ref="previewFrame"
@@ -319,8 +351,28 @@ const saving = ref(false)
 const publishing = ref(false)
 const currentSiteId = ref<string>('') // ID сохраненного сайта
 const viewMode = ref('desktop')
-const openedPanels = ref(['general', 'colors', 'hero'])
+const openedPanels = ref(['general', 'products']) // Start with products open by default for this task
 const previewFrame = ref<HTMLIFrameElement | null>(null)
+const iframeSrc = ref('/shop/preview')
+
+// Mock Products for Builder Demo (In real app, fetch from store)
+const builderProducts = ref([
+ { id: 1, name: 'Футболка Basic', price: 1200, image: '' },
+ { id: 2, name: 'Кепка Brand', price: 800, image: '' },
+ { id: 3, name: 'Худи Oversize', price: 3500, image: '' },
+])
+
+const navigateToProduct = (id: number) => {
+ iframeSrc.value = `/products/${id}?iframe=true`
+}
+
+const navigateToNewProduct = () => {
+ iframeSrc.value = `/products/new?iframe=true`
+}
+
+const resetIframe = () => {
+ iframeSrc.value = '/shop/preview'
+}
 
 // Сохранение
 // Сохранение
