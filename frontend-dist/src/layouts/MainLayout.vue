@@ -7,7 +7,7 @@
         <div class="d-flex align-center justify-center rounded-lg bg-indigo-lighten-5 pa-2">
           <v-icon icon="mdi-store" color="#2A1A8E" size="24"></v-icon>
         </div>
-        <span class="ml-3 text-h6 font-weight-bold text-grey-darken-4">ShopBuilder</span>
+        <span class="ml-3 text-h6 font-weight-bold text-grey-darken-4">Quickstart</span>
       </div>
 
       <!-- Поиск -->

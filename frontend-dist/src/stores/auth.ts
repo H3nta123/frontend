@@ -48,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
 
 
-      await api.post('/auth/login', { email })
+      await api.post('/v1/auth/login', { email })
       return true
     } catch (e: any) {
       console.error('sendLoginRequest error:', e)
@@ -63,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Подтверждение кода и получение токена
    * POST /api/v1/auth/confirm
    * Body: { email: string, code: string }
-   * Response: { token?: string, user?: User }
+   * Response: { accessToken: string, ... }
    */
   const verifyCode = async (email: string, code: string): Promise<boolean> => {
     loading.value = true
@@ -72,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
 
 
-      const response = await api.post<AuthConfirmResponse>('/auth/confirm', {
+      const response = await api.post<AuthConfirmResponse>('/v1/auth/confirm', {
         email,
         code
       })

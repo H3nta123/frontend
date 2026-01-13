@@ -1,8 +1,5 @@
-import axios from 'axios'
+import { api } from '@/services/api'
 import type { ShopSettings } from '@/stores/shop'
-
-// URL API
-const API_URL = '/api/v1'
 
 export interface SaveSiteRequest {
     subdomain: string
@@ -23,18 +20,7 @@ export const sitesService = {
      * POST /me/sites/save
      */
     async saveSite(data: SaveSiteRequest): Promise<SaveSiteResponse> {
-        try {
-            const token = localStorage.getItem('jwt_token')
-            const headers = token ? { Authorization: `Bearer ${token}` } : {}
-
-            const response = await axios.post<SaveSiteResponse>(`${API_URL}/me/sites/save`, data, {
-                headers
-            })
-            return response.data
-        } catch (error) {
-            console.error('Ошибка при сохранении сайта:', error)
-            throw error
-        }
+        return await api.post<SaveSiteResponse>('/me/sites/save', data)
     },
 
     /**
@@ -42,10 +28,8 @@ export const sitesService = {
      */
     async checkSubdomain(subdomain: string): Promise<boolean> {
         try {
-            const response = await axios.get<{ available: boolean }>(`${API_URL}/sites/check-subdomain`, {
-                params: { subdomain }
-            })
-            return response.data.available
+            const response = await api.get<{ available: boolean }>(`/sites/check-subdomain?subdomain=${subdomain}`)
+            return response.available
         } catch (error) {
             console.error('Ошибка проверки поддомена:', error)
             return false
@@ -57,9 +41,7 @@ export const sitesService = {
      * POST /me/sites/{id}/publish
      */
     async publishSite(siteId: string): Promise<void> {
-        const token = localStorage.getItem('jwt_token')
-        const headers = token ? { Authorization: `Bearer ${token}` } : {}
-        await axios.post(`${API_URL}/me/sites/${siteId}/publish`, {}, { headers })
+        await api.post(`/me/sites/${siteId}/publish`, {})
     },
 
     /**
@@ -67,9 +49,6 @@ export const sitesService = {
      * POST /me/dashboard
      */
     async getDashboard(): Promise<any> {
-        const token = localStorage.getItem('jwt_token')
-        const headers = token ? { Authorization: `Bearer ${token}` } : {}
-        const response = await axios.post(`${API_URL}/me/dashboard`, {}, { headers })
-        return response.data
+        return await api.post('/me/dashboard', {})
     }
 }
