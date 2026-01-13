@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch, computed } from 'vue'
+import { api } from '@/services/api'
 
 // Интерфейс темы/шаблона
 export interface ShopTheme {
@@ -41,6 +42,9 @@ export interface ShopSettings {
   showAboutSection: boolean
   aboutText: string
 
+  // Каталог
+  cardLayout: 'grid-standard' | 'grid-compact' | 'list-view'
+
   // Футер
   footerText: string
   socialLinks: {
@@ -70,7 +74,8 @@ const DEFAULT_SETTINGS: ShopSettings = {
   productsTitle: 'Популярные товары',
   showAboutSection: false,
   aboutText: '',
-  footerText: '© 2024 Все права защищены',
+  cardLayout: 'grid-standard',
+  footerText: '© 2026 Все права защищены',
   socialLinks: {}
 }
 
@@ -92,6 +97,7 @@ export const THEME_TEMPLATES: ShopTheme[] = [
       heroSubtitle: 'Откройте для себя стильные новинки сезона',
       heroButtonText: 'Смотреть',
       heroStyle: 'centered',
+      cardLayout: 'grid-standard',
     }
   },
   {
@@ -110,6 +116,7 @@ export const THEME_TEMPLATES: ShopTheme[] = [
       heroSubtitle: 'Эксклюзивные товары для тех, кто ценит стиль',
       heroButtonText: 'Исследовать',
       heroStyle: 'left',
+      cardLayout: 'grid-compact',
     }
   },
   {
@@ -129,6 +136,7 @@ export const THEME_TEMPLATES: ShopTheme[] = [
       heroButtonText: 'Открыть каталог',
       heroStyle: 'centered',
       heroOverlay: true,
+      cardLayout: 'list-view',
     }
   },
   {
@@ -147,6 +155,7 @@ export const THEME_TEMPLATES: ShopTheme[] = [
       heroSubtitle: 'Проверенные товары с гарантией качества',
       heroButtonText: 'В каталог',
       heroStyle: 'right',
+      cardLayout: 'grid-standard',
     }
   },
   {
@@ -165,6 +174,7 @@ export const THEME_TEMPLATES: ShopTheme[] = [
       heroSubtitle: 'Экологически чистые продукты для вашего дома',
       heroButtonText: 'Выбрать',
       heroStyle: 'centered',
+      cardLayout: 'list-view',
     }
   },
   {
@@ -183,9 +193,12 @@ export const THEME_TEMPLATES: ShopTheme[] = [
       heroSubtitle: 'Яркие вещи для ярких людей',
       heroButtonText: 'Вперёд!',
       heroStyle: 'left',
+      cardLayout: 'grid-compact',
     }
   },
 ]
+
+import { useProductsStore } from '@/stores/products'
 
 export const useShopStore = defineStore('shop', () => {
   // Загрузка из localStorage
@@ -202,8 +215,9 @@ export const useShopStore = defineStore('shop', () => {
 
   // Моковые товары магазина
   const products = ref([
-
   ])
+
+  const productsStore = useProductsStore()
 
   // Является ли тема тёмной
   const isDarkTheme = computed(() => {
@@ -241,26 +255,37 @@ export const useShopStore = defineStore('shop', () => {
   // Загрузка конфига с бэкенда (для лайв-сайта)
   const fetchSiteConfig = async () => {
     try {
-      const response = await fetch('/site-config');
-      if (response.ok) {
-        // Проверяем тип контента, если JSON - парсим
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          const remoteSettings = await response.json();
-          // Если бэкенд возвращает структуру конфига
-          if (remoteSettings && remoteSettings.config) {
-            settings.value = remoteSettings.config;
-            if (remoteSettings.pattern) {
-              currentThemeId.value = remoteSettings.pattern;
-            }
-          } else if (remoteSettings) {
-            // Fallback если возвращает сразу settings
-            // settings.value = { ...DEFAULT_SETTINGS, ...remoteSettings };
-          }
+      const subdomain = getSubdomain()
+      if (!subdomain) return
+
+      // Используем /render endpoint согласно Postman
+      // Предполагаем, что slug = subdomain
+      const response = await api.get<any>(`/render?slug=${subdomain}`)
+
+      if (response) {
+        // Маппинг ответа на настройки и товары
+        // Структура ответа может отличаться, адаптируем по ходу
+        if (response.config) {
+          settings.value = { ...settings.value, ...response.config }
+        } else if (response.settings) {
+          settings.value = { ...settings.value, ...response.settings }
+        }
+
+        // Если товары внутри конфига - обновляем productsStore
+        if (response.products && Array.isArray(response.products)) {
+          products.value = response.products
+          productsStore.setProducts(response.products)
+        } else if (response.data?.products) {
+          products.value = response.data.products
+          productsStore.setProducts(response.data.products)
+        }
+
+        if (response.pattern) {
+          currentThemeId.value = response.pattern
         }
       }
     } catch (e) {
-      console.error('Failed to fetch site config:', e);
+      console.error('Failed to fetch site config:', e)
     }
   }
 

@@ -15,7 +15,7 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const target = env.VITE_BACKEND_URL || 'http://localhost:8080/'
+  const target = env.VITE_BACKEND_URL || 'http://localhost:3000/'
 
   return {
     plugins: [
@@ -88,6 +88,25 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       proxy: {
+        '/api/v1/me/payment': {
+          target: target,
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('proxyReq', (proxyReq, req, _res) => {
+              const host = req.headers.host
+              if (host) {
+                const parts = host.split('.')
+                const sub = parts[0]
+                if (parts.length >= 2 && sub !== 'localhost' && sub !== '127') {
+                  proxyReq.setHeader('X-Subdomain', sub)
+                }
+                const backendHost = host.replace(':3000', ':8080')
+                proxyReq.setHeader('X-Forwarded-Host', backendHost)
+              }
+            })
+          },
+        },
         '/api': {
           target: target,
           changeOrigin: true,
@@ -97,7 +116,6 @@ export default defineConfig(({ mode }) => {
               const host = req.headers.host
               if (host) {
                 const parts = host.split('.')
-                // Извлекаем всё, что до первой точки
                 const sub = parts[0]
                 if (parts.length >= 2 && sub !== 'localhost' && sub !== '127') {
                   console.log(`[Vite Proxy API] Host: ${host} -> X-Subdomain: ${sub}`)

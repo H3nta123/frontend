@@ -118,22 +118,27 @@
             <v-col
               v-for="product in filteredProducts"
               :key="product.id"
-              cols="12"
-              sm="6"
-              lg="4"
+              :cols="gridCols.cols"
+              :sm="gridCols.sm"
+              :lg="gridCols.lg"
             >
-              <v-card class="rounded-xl product-card h-100 d-flex flex-column" flat>
+              <!-- GRID VIEW CARD -->
+              <v-card 
+                v-if="settings.cardLayout !== 'list-view'"
+                class="rounded-xl product-card h-100 d-flex flex-column" 
+                flat
+              >
                 <!-- Изображение -->
                 <router-link :to="`/shop/product/${product.id}`" class="text-decoration-none">
                   <v-sheet
                     :color="isDark ? 'grey-darken-3' : 'grey-lighten-4'"
-                    height="220"
+                    :height="settings.cardLayout === 'grid-compact' ? 180 : 220"
                     class="rounded-xl d-flex align-center justify-center position-relative"
                   >
                     <v-img 
                       v-if="product.images && product.images.length > 0" 
                       :src="product.images[0]" 
-                      height="220" 
+                      :height="settings.cardLayout === 'grid-compact' ? 180 : 220" 
                       cover 
                       class="rounded-xl"
                     ></v-img>
@@ -194,6 +199,81 @@
                   </v-btn>
                 </v-card-actions>
               </v-card>
+
+              <!-- LIST VIEW CARD -->
+              <v-card 
+                v-else
+                class="rounded-xl product-card w-100 d-flex flex-row align-center" 
+                flat
+                style="height: 160px;"
+              >
+                  <!-- Картинка слева -->
+                  <router-link :to="`/shop/product/${product.id}`" class="text-decoration-none h-100">
+                      <v-sheet
+                        :color="isDark ? 'grey-darken-3' : 'grey-lighten-4'"
+                        height="100%"
+                        width="160"
+                        class="rounded-l-xl d-flex align-center justify-center position-relative"
+                      >
+                         <v-img 
+                            v-if="product.images && product.images.length > 0" 
+                            :src="product.images[0]" 
+                            height="100%" 
+                            cover 
+                            class="rounded-l-xl"
+                          ></v-img>
+                         <v-icon v-else size="48" :color="isDark ? 'grey-darken-1' : 'grey-lighten-2'">
+                            mdi-tshirt-crew-outline
+                         </v-icon>
+                      </v-sheet>
+                  </router-link>
+
+                  <div class="d-flex flex-column flex-grow-1 px-6 py-4 h-100 justify-center">
+                      <router-link :to="`/shop/product/${product.id}`" class="text-decoration-none">
+                        <h3 
+                          class="text-h6 font-weight-bold mb-2"
+                          :style="{ color: settings.textColor }"
+                        >
+                          {{ product.name }}
+                        </h3>
+                      </router-link>
+                      <p class="text-body-2 text-grey mb-4 text-truncate" style="max-width: 400px;">
+                          {{ product.description || 'Описание отсутствует' }}
+                      </p>
+                      
+                       <div class="d-flex align-center">
+                        <span 
+                          class="text-h6 font-weight-bold"
+                          :style="{ color: settings.primaryColor }"
+                        >
+                          {{ formatPrice(product.price) }}
+                        </span>
+                         <span
+                          v-if="product.compareAtPrice && product.compareAtPrice > product.price"
+                          class="text-body-2 text-decoration-line-through text-grey ml-2"
+                        >
+                          {{ formatPrice(product.compareAtPrice) }}
+                        </span>
+                      </div>
+                  </div>
+
+                   <div class="pa-4 d-flex align-center h-100">
+                      <v-btn
+                        :color="settings.primaryColor"
+                        variant="flat"
+                        class="text-white text-none font-weight-bold"
+                        rounded="lg"
+                        height="48"
+                        width="160"
+                        :disabled="product.status !== 'active'"
+                        @click="addToCart(product)"
+                      >
+                        <v-icon icon="mdi-cart-plus" class="mr-2"></v-icon>
+                        В корзину
+                      </v-btn>
+                   </div>
+              </v-card>
+
             </v-col>
           </v-row>
         </v-col>
@@ -231,6 +311,18 @@ const sortOptions = [
   { title: 'Сначала дорогие', value: 'price_desc' },
   { title: 'По названию', value: 'name' },
 ]
+
+// Вычисление размеров сетки
+const gridCols = computed(() => {
+    switch (settings.value.cardLayout) {
+        case 'grid-compact':
+            return { cols: 6, sm: 4, lg: 3 }
+        case 'list-view':
+            return { cols: 12, sm: 12, lg: 12 }
+        default: // grid-standard
+            return { cols: 12, sm: 6, lg: 4 }
+    }
+})
 
 // Загрузка
 onMounted(async () => {

@@ -56,6 +56,16 @@
             >
               Конструктор
             </v-btn>
+             <v-btn
+              v-if="!store.active"
+              variant="flat"
+              class="text-none font-weight-bold ml-2"
+              color="orange-darken-1"
+              rounded="lg"
+              @click="openPaymentDialog(store.id)"
+            >
+              Оплатить
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -121,9 +131,10 @@
              class="text-none text-white w-100 mb-3" 
              rounded="lg" 
              height="48"
-             @click="simulatePayment"
+             :loading="paying"
+             @click="handlePayment"
             >
-             Оплатить 990 ₽
+             Оплатить 199 ₽
            </v-btn>
            <v-btn variant="text" class="text-none text-grey" size="small" @click="paymentDialog = false">Отмена</v-btn>
         </v-card-text>
@@ -139,13 +150,16 @@ import MainLayout from '@/layouts/MainLayout.vue'
 import { sitesService } from '@/services/sites'
 import { useShopStore } from '@/stores/shop'
 import { useRouter } from 'vue-router'
+import { paymentsService } from '@/services/payments'
 
 const router = useRouter()
 const shopStore = useShopStore()
 const createDialog = ref(false)
 const paymentDialog = ref(false)
+const paying = ref(false)
 const creating = ref(false)
 const loading = ref(false)
+const selectedStoreId = ref<string | null>(null)
 
 // Тип для магазина (упрощенный)
 interface StoreItem {
@@ -153,6 +167,8 @@ interface StoreItem {
   name: string
   subdomain: string
   active: boolean
+  pattern: string
+  config: any
 }
 
 const stores = ref<StoreItem[]>([])
@@ -165,12 +181,17 @@ const newStore = reactive({
 const fetchStores = async () => {
   loading.value = true
   try {
-    // MOCK for no backend
-    // const dashboardData = await sitesService.getDashboard()
-    const dashboardData = { sites: [] } // Mock empty response
+    const dashboardData = await sitesService.getDashboard()
     
-    const apiStores: StoreItem[] = []
-    // Logic below continues...
+    // Предполагаем, что бэкенд возвращает список сайтов в поле sites
+    const apiStores: StoreItem[] = (dashboardData.sites || []).map((s: any) => ({
+        id: s.id,
+        name: s.config?.name || s.name || 'Магазин',
+        subdomain: s.subdomain,
+        active: s.is_active || s.active || false,
+        pattern: s.pattern || 'minimal-light',
+        config: s.config || {}
+    }))
     
     stores.value = apiStores
 
@@ -182,12 +203,15 @@ const fetchStores = async () => {
                 id: 'local-current',
                 name: shopStore.settings.name,
                 subdomain: shopStore.settings.subdomain,
-                active: true
+                active: true,
+                pattern: 'minimal-light',
+                config: shopStore.settings
             })
         }
     }
   } catch (e) {
     console.error('Ошибка загрузки магазинов', e)
+    // Fallback?
   } finally {
     loading.value = false
   }
@@ -206,14 +230,6 @@ const openCreateDialog = () => {
 const handleCreate = async () => {
   creating.value = true
   try {
-    // MOCK Creation without backend
-    const mockId = 'mock-' + Date.now()
-    const response = { id: mockId }
-    
-    // Simulate delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    /*
     const payload = {
         subdomain: newStore.subdomain,
         pattern: 'minimal-light',
@@ -222,27 +238,69 @@ const handleCreate = async () => {
             subdomain: newStore.subdomain,
         } as any
     }
+    
     const response = await sitesService.saveSite(payload)
-    */
 
     createDialog.value = false
     
-    // Редирект в конструктор
+    // Сразу открываем оплату
     if (response && response.id) {
-       router.push(`/builder?storeId=${response.id}`)
-    } else {
-       router.push('/builder')
+       // Добавляем в список (как неактивный)
+       stores.value.unshift({
+           id: response.id,
+           name: newStore.name,
+           subdomain: newStore.subdomain,
+           active: false,
+           pattern: payload.pattern,
+           config: payload.config
+       })
+       
+       // Запоминаем ID и открываем диалог
+       selectedStoreId.value = response.id
+       paymentDialog.value = true
     }
     
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
-    alert('Ошибка при создании магазина. Возможно поддомен занят.')
+    alert(e.message || 'Ошибка при создании магазина. Возможно поддомен занят.')
   } finally {
     creating.value = false
   }
 }
 
-// const simulatePayment = async () => { ... } // Removed or commented out
+const openPaymentDialog = (id: string) => {
+    selectedStoreId.value = id
+    paymentDialog.value = true
+}
+
+const handlePayment = async () => {
+    if (!selectedStoreId.value) return
+    
+    paying.value = true
+    try {
+        const targetStore = stores.value.find(s => s.id === selectedStoreId.value)
+        
+        const response = await paymentsService.createPayment({
+            site_id: selectedStoreId.value,
+            description: `Оплата магазина: ${targetStore?.name || 'Без названия'}`,
+            return_url: window.location.origin + '/stores'
+        })
+        
+        if (response.confirmation_url) {
+             window.location.href = response.confirmation_url
+             return
+        }
+        
+        paymentDialog.value = false
+        alert('Оплата инициирована.')
+        
+    } catch (e: any) {
+        console.error('Payment error:', e)
+        alert(e.message || 'Ошибка оплаты')
+    } finally {
+        paying.value = false
+    }
+}
 
 </script>
 

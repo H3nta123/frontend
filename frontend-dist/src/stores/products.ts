@@ -35,14 +35,6 @@ export interface ProductFormData {
 }
 
 // Для разработки — мок данные
-const MOCK_PRODUCTS: Product[] = [
-    { id: 1, name: 'Футболка Oversize', description: 'Удобная футболка', price: 2500, quantity: 10, status: 'active', images: [] },
-    { id: 2, name: 'Кепка Brand', description: 'Стильная кепка', price: 1200, quantity: 25, status: 'active', images: [] },
-    { id: 3, name: 'Худи Streetwear', description: 'Теплое худи', price: 4500, quantity: 15, status: 'active', images: [] },
-    { id: 4, name: 'Джинсы Slim Fit', description: 'Классические джинсы', price: 5200, quantity: 8, status: 'active', images: [] },
-    { id: 5, name: 'Кроссовки Urban', description: 'Городские кроссовки', price: 8900, quantity: 12, status: 'draft', images: [] },
-]
-
 export const useProductsStore = defineStore('products', () => {
     // === STATE ===
     const products = ref<Product[]>([])
@@ -52,9 +44,6 @@ export const useProductsStore = defineStore('products', () => {
     const total = ref(0)
     const page = ref(1)
     const limit = ref(20)
-
-    // Режим разработки — использовать моки
-    const useMocks = ref(true) // Поменять на false когда бэкенд готов
 
     // === COMPUTED ===
     const activeProducts = computed(() =>
@@ -73,11 +62,10 @@ export const useProductsStore = defineStore('products', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                // Мок для разработки
-                await new Promise(resolve => setTimeout(resolve, 300))
-                products.value = [...MOCK_PRODUCTS]
-                total.value = MOCK_PRODUCTS.length
+            // В режиме Site Builder товары загружаются вместе с конфигом сайта (через shop store)
+            // Если они уже есть, просто возвращаем их
+            if (products.value.length > 0) {
+                total.value = products.value.length
                 return
             }
 
@@ -107,16 +95,23 @@ export const useProductsStore = defineStore('products', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 200))
-                const product = MOCK_PRODUCTS.find(p => p.id === id)
-                currentProduct.value = product || null
-                return product || null
+            // Сначала ищем в уже загруженных
+            const localProduct = products.value.find(p => p.id === id)
+            if (localProduct) {
+                currentProduct.value = localProduct
+                return localProduct
             }
 
-            const product = await api.get<Product>(`/goods/${id}`)
-            currentProduct.value = product
-            return product
+            // Если нет, пробуем загрузить отдельно (возможно не сработает если нет эндпоинта)
+            try {
+                const product = await api.get<Product>(`/goods/${id}`)
+                currentProduct.value = product
+                return product
+            } catch (innerError) {
+                console.warn('Could not fetch product via API, returning null')
+                return null
+            }
+
         } catch (e: any) {
             error.value = e.message || 'Ошибка загрузки товара'
             console.error('fetchProductById error:', e)
@@ -126,25 +121,18 @@ export const useProductsStore = defineStore('products', () => {
         }
     }
 
+    // Установить товары (вызывается из shop store)
+    function setProducts(newProducts: Product[]) {
+        products.value = newProducts
+        total.value = newProducts.length
+    }
+
     // Создать товар
     async function createProduct(data: ProductFormData): Promise<Product | null> {
         loading.value = true
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const newProduct: Product = {
-                    ...data,
-                    id: Math.max(...MOCK_PRODUCTS.map(p => p.id)) + 1,
-                    images: data.images || [],
-                    createdAt: new Date().toISOString(),
-                }
-                MOCK_PRODUCTS.push(newProduct)
-                products.value = [...MOCK_PRODUCTS]
-                return newProduct
-            }
-
             const product = await api.post<Product>('/goods', data)
             products.value.push(product)
             return product
@@ -163,22 +151,6 @@ export const useProductsStore = defineStore('products', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const index = MOCK_PRODUCTS.findIndex(p => p.id === id)
-                if (index !== -1) {
-                    const updatedProduct: Product = {
-                        ...MOCK_PRODUCTS[index],
-                        ...data,
-                        updatedAt: new Date().toISOString()
-                    } as Product
-                    MOCK_PRODUCTS[index] = updatedProduct
-                    products.value = [...MOCK_PRODUCTS]
-                    return MOCK_PRODUCTS[index]
-                }
-                return null
-            }
-
             const product = await api.patch<Product>(`/goods/${id}`, data)
             const index = products.value.findIndex(p => p.id === id)
             if (index !== -1) {
@@ -200,17 +172,6 @@ export const useProductsStore = defineStore('products', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const index = MOCK_PRODUCTS.findIndex(p => p.id === id)
-                if (index !== -1) {
-                    MOCK_PRODUCTS.splice(index, 1)
-                    products.value = [...MOCK_PRODUCTS]
-                    return true
-                }
-                return false
-            }
-
             await api.delete(`/goods/${id}`)
             products.value = products.value.filter(p => p.id !== id)
             return true
@@ -237,7 +198,7 @@ export const useProductsStore = defineStore('products', () => {
         total,
         page,
         limit,
-        useMocks,
+
         // Computed
         activeProducts,
         draftProducts,
@@ -248,5 +209,6 @@ export const useProductsStore = defineStore('products', () => {
         updateProduct,
         deleteProduct,
         clearCurrentProduct,
+        setProducts
     }
 })

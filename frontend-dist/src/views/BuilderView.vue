@@ -263,6 +263,19 @@
             </v-expansion-panel-text>
           </v-expansion-panel>
 
+          <!-- Секция: Внешний вид каталога (Новое!) -->
+          <v-expansion-panel value="catalog">
+            <v-expansion-panel-title class="font-weight-bold">Каталог и Карточки</v-expansion-panel-title>
+            <v-expansion-panel-text>
+              <label class="text-caption font-weight-bold text-grey-darken-1 mb-1 d-block">Стиль карточек товара</label>
+              <v-radio-group v-model="shopStore.settings.cardLayout" hide-details class="mb-2">
+                <v-radio value="grid-standard" label="Стандартная сетка" density="compact"></v-radio>
+                <v-radio value="grid-compact" label="Компактная сетка" density="compact"></v-radio>
+                <v-radio value="list-view" label="Список (в строку)" density="compact"></v-radio>
+              </v-radio-group>
+            </v-expansion-panel-text>
+          </v-expansion-panel>
+
           <!-- Секция: Футер -->
           <v-expansion-panel value="footer">
             <v-expansion-panel-title class="font-weight-bold">Футер</v-expansion-panel-title>

@@ -21,7 +21,7 @@ const MOCK_REVIEWS: Review[] = [
 ]
 
 export const useReviewsStore = defineStore('reviews', () => {
-    const reviews = ref<Review[]>([...MOCK_REVIEWS])
+    const reviews = ref<Review[]>([])
     const loading = ref(false)
 
     // Получить отзывы по товару

@@ -18,17 +18,13 @@ export interface BrandFormData {
     logoUrl?: string
 }
 
-// Мок данные для разработки
-const MOCK_BRANDS: Brand[] = []
+// Мок данные удалены
 
 export const useBrandsStore = defineStore('brands', () => {
     // === STATE ===
     const brands = ref<Brand[]>([])
     const loading = ref(false)
     const error = ref<string | null>(null)
-
-    // Режим разработки
-    const useMocks = ref(true)
 
     // === ACTIONS ===
 
@@ -38,12 +34,6 @@ export const useBrandsStore = defineStore('brands', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                brands.value = [...MOCK_BRANDS]
-                return
-            }
-
             const response = await api.get<PaginatedResponse<Brand>>('/brands')
             brands.value = response.data
         } catch (e: any) {
@@ -57,9 +47,6 @@ export const useBrandsStore = defineStore('brands', () => {
     // Получить бренд по ID
     async function fetchBrandById(id: number): Promise<Brand | null> {
         try {
-            if (useMocks.value) {
-                return MOCK_BRANDS.find(b => b.id === id) || null
-            }
             return await api.get<Brand>(`/brands/${id}`)
         } catch (e: any) {
             error.value = e.message || 'Ошибка загрузки бренда'
@@ -73,18 +60,6 @@ export const useBrandsStore = defineStore('brands', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const newBrand: Brand = {
-                    ...data,
-                    id: Math.max(...MOCK_BRANDS.map(b => b.id), 0) + 1,
-                    createdAt: new Date().toISOString(),
-                }
-                MOCK_BRANDS.push(newBrand)
-                brands.value = [...MOCK_BRANDS]
-                return newBrand
-            }
-
             const brand = await api.post<Brand>('/brands', data)
             brands.value.push(brand)
             return brand
@@ -102,23 +77,6 @@ export const useBrandsStore = defineStore('brands', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const index = MOCK_BRANDS.findIndex(b => b.id === id)
-                if (index !== -1) {
-                    MOCK_BRANDS[index] = {
-                        ...MOCK_BRANDS[index],
-                        name: data.name,
-                        description: data.description,
-                        logoUrl: data.logoUrl,
-                        updatedAt: new Date().toISOString()
-                    }
-                    brands.value = [...MOCK_BRANDS]
-                    return MOCK_BRANDS[index]
-                }
-                return null
-            }
-
             const brand = await api.patch<Brand>(`/brands/${id}`, data)
             const index = brands.value.findIndex(b => b.id === id)
             if (index !== -1) {
@@ -139,17 +97,6 @@ export const useBrandsStore = defineStore('brands', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const index = MOCK_BRANDS.findIndex(b => b.id === id)
-                if (index !== -1) {
-                    MOCK_BRANDS.splice(index, 1)
-                    brands.value = [...MOCK_BRANDS]
-                    return true
-                }
-                return false
-            }
-
             await api.delete(`/brands/${id}`)
             brands.value = brands.value.filter(b => b.id !== id)
             return true
@@ -166,7 +113,6 @@ export const useBrandsStore = defineStore('brands', () => {
         brands,
         loading,
         error,
-        useMocks,
         // Actions
         fetchBrands,
         fetchBrandById,

@@ -48,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
 
 
-      await api.post('/v1/auth/login', { email })
+      await api.post('/auth/login', { email })
       return true
     } catch (e: any) {
       console.error('sendLoginRequest error:', e)
@@ -72,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
 
 
-      const response = await api.post<AuthConfirmResponse>('/v1/auth/confirm', {
+      const response = await api.post<AuthConfirmResponse>('/auth/confirm', {
         email,
         code
       })

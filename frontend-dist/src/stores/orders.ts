@@ -31,8 +31,7 @@ export interface Order {
     updatedAt?: string
 }
 
-// Мок данные
-const MOCK_ORDERS: Order[] = []
+// Мок данные удалены
 
 export const useOrdersStore = defineStore('orders', () => {
     // === STATE ===
@@ -40,8 +39,6 @@ export const useOrdersStore = defineStore('orders', () => {
     const currentOrder = ref<Order | null>(null)
     const loading = ref(false)
     const error = ref<string | null>(null)
-
-    const useMocks = ref(true)
 
     // === COMPUTED ===
 
@@ -70,12 +67,6 @@ export const useOrdersStore = defineStore('orders', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                orders.value = [...MOCK_ORDERS]
-                return
-            }
-
             const response = await api.get<PaginatedResponse<Order>>('/orders')
             orders.value = response.data
         } catch (e: any) {
@@ -88,11 +79,6 @@ export const useOrdersStore = defineStore('orders', () => {
 
     async function fetchOrderById(id: number): Promise<Order | null> {
         try {
-            if (useMocks.value) {
-                const order = MOCK_ORDERS.find(o => o.id === id)
-                currentOrder.value = order || null
-                return order || null
-            }
             const order = await api.get<Order>(`/orders/${id}`)
             currentOrder.value = order
             return order
@@ -107,18 +93,6 @@ export const useOrdersStore = defineStore('orders', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const index = MOCK_ORDERS.findIndex(o => o.id === id)
-                if (index !== -1) {
-                    MOCK_ORDERS[index].status = status
-                    MOCK_ORDERS[index].updatedAt = new Date().toISOString()
-                    orders.value = [...MOCK_ORDERS]
-                    return true
-                }
-                return false
-            }
-
             await api.patch(`/orders/${id}`, { status })
             const index = orders.value.findIndex(o => o.id === id)
             if (index !== -1) {
@@ -139,20 +113,6 @@ export const useOrdersStore = defineStore('orders', () => {
         error.value = null
 
         try {
-            if (useMocks.value) {
-                await new Promise(resolve => setTimeout(resolve, 300))
-                const newOrder: Order = {
-                    ...orderData,
-                    id: Math.max(...MOCK_ORDERS.map(o => o.id), 0) + 1,
-                    orderNumber: String(100000 + MOCK_ORDERS.length + 1),
-                    status: 'new',
-                    createdAt: new Date().toISOString()
-                }
-                MOCK_ORDERS.unshift(newOrder)
-                orders.value = [...MOCK_ORDERS]
-                return newOrder
-            }
-
             const order = await api.post<Order>('/orders', orderData)
             orders.value.unshift(order)
             return order
@@ -170,7 +130,6 @@ export const useOrdersStore = defineStore('orders', () => {
         currentOrder,
         loading,
         error,
-        useMocks,
         // Computed
         newOrdersCount,
         ordersByStatus,
