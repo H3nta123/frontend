@@ -6,6 +6,8 @@ interface User {
   email: string
   name: string
   role: string
+  balance: number
+  pendingBalance: number // Средства в холде/обработке
 }
 
 interface AuthConfirmResponse {
@@ -24,7 +26,13 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref('')
 
   const savedEmail = localStorage.getItem('user_email')
-  const user = ref<User | null>(savedEmail ? { email: savedEmail, name: savedEmail, role: 'owner' } : null)
+  const user = ref<User | null>(savedEmail ? {
+    email: savedEmail,
+    name: savedEmail,
+    role: 'owner',
+    balance: 0,
+    pendingBalance: 0
+  } : null)
 
   // === ACTIONS ===
 
@@ -83,7 +91,9 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = {
         email: email,
         name: email,
-        role: 'owner'
+        role: 'owner',
+        balance: 0,
+        pendingBalance: 0
       }
       localStorage.setItem('user_email', email)
 
@@ -103,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = () => {
     token.value = null
     isAuthenticated.value = false
-    user.value = { email: '', name: '', role: '' }
+    user.value = { email: '', name: '', role: '', balance: 0, pendingBalance: 0 }
 
     localStorage.removeItem('is_authenticated')
     localStorage.removeItem('jwt_token')

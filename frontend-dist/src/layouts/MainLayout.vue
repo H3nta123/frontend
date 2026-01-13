@@ -28,8 +28,22 @@
 
       <v-spacer></v-spacer>
 
-      <!-- Меню профиля -->
+      <!-- Меню профиля и Баланс -->
       <div class="d-flex align-center gap-2">
+        
+        <!-- Баланс -->
+        <div 
+            class="d-flex align-center mr-4 px-3 py-1 bg-grey-lighten-4 rounded-pill border cursor-pointer hover-opacity" 
+            v-if="authStore.isAuthenticated"
+            @click="router.push('/finance')"
+        >
+            <v-icon icon="mdi-wallet-outline" color="#2A1A8E" size="small" class="mr-2"></v-icon>
+            <div class="d-flex flex-column" style="line-height: 1.1;">
+                <span class="text-caption font-weight-bold text-grey-darken-1">Баланс</span>
+                <span class="text-subtitle-2 font-weight-bold text-grey-darken-3">{{ authStore.user?.balance || 0 }} ₽</span>
+            </div>
+        </div>
+
         <v-btn icon color="grey-darken-1" variant="text">
           <v-icon>mdi-bell-outline</v-icon>
         </v-btn>
