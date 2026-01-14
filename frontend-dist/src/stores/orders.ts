@@ -39,6 +39,7 @@ export const useOrdersStore = defineStore('orders', () => {
     const currentOrder = ref<Order | null>(null)
     const loading = ref(false)
     const error = ref<string | null>(null)
+    const statuses = ref<string[]>([])
 
     // === COMPUTED ===
 
@@ -124,12 +125,26 @@ export const useOrdersStore = defineStore('orders', () => {
         }
     }
 
+    // Получить список статусов заказов с бэкенда
+    async function fetchOrderStatuses(): Promise<string[]> {
+        try {
+            const response = await api.get<string[]>('/me/orders/statuses')
+            statuses.value = response
+            return response
+        } catch (e: any) {
+            error.value = e.message || 'Ошибка загрузки статусов'
+            console.error('fetchOrderStatuses error:', e)
+            return []
+        }
+    }
+
     return {
         // State
         orders,
         currentOrder,
         loading,
         error,
+        statuses,
         // Computed
         newOrdersCount,
         ordersByStatus,
@@ -138,5 +153,6 @@ export const useOrdersStore = defineStore('orders', () => {
         fetchOrderById,
         updateOrderStatus,
         createOrder,
+        fetchOrderStatuses,
     }
 })
