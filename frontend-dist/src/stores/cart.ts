@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export interface CartItem {
-    productId: number
+    productId: string | number
     name: string
     price: number
     image?: string
@@ -68,7 +68,7 @@ export const useCartStore = defineStore('cart', () => {
     // === ACTIONS ===
 
     // Добавить товар в корзину
-    function addItem(product: { id: number, name: string, price: number, image?: string }) {
+    function addItem(product: { id: string | number, name: string, price: number, image?: string }) {
         const existing = items.value.find(item => item.productId === product.id)
 
         if (existing) {
@@ -88,7 +88,7 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // Удалить товар из корзины
-    function removeItem(productId: number) {
+    function removeItem(productId: string | number) {
         const index = items.value.findIndex(item => item.productId === productId)
         if (index !== -1) {
             items.value.splice(index, 1)
@@ -96,7 +96,7 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // Увеличить количество
-    function incrementQuantity(productId: number) {
+    function incrementQuantity(productId: string | number) {
         const item = items.value.find(item => item.productId === productId)
         if (item) {
             item.quantity++
@@ -104,7 +104,7 @@ export const useCartStore = defineStore('cart', () => {
     }
 
     // Уменьшить количество
-    function decrementQuantity(productId: number) {
+    function decrementQuantity(productId: string | number) {
         const item = items.value.find(item => item.productId === productId)
         if (item && item.quantity > 1) {
             item.quantity--

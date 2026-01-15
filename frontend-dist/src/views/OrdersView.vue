@@ -13,20 +13,7 @@
       </v-chip>
     </div>
 
-    <!-- Фильтры по статусу -->
-    <div class="d-flex gap-2 mb-6 flex-wrap">
-      <v-chip
-        v-for="status in statusFilters"
-        :key="status.value"
-        :color="activeStatus === status.value ? getStatusColor(status.value) : 'grey-lighten-3'"
-        :class="activeStatus === status.value ? 'text-white' : 'text-grey-darken-2'"
-        class="font-weight-bold"
-        @click="activeStatus = status.value"
-      >
-        {{ status.label }}
-        <span v-if="status.value !== 'all'" class="ml-1">({{ getStatusCount(status.value) }})</span>
-      </v-chip>
-    </div>
+    <!-- Статистика или заглушка (можно вернуть позже) -->
 
     <!-- Загрузка -->
     <div v-if="ordersStore.loading && ordersStore.orders.length === 0" class="d-flex justify-center py-16">
@@ -39,7 +26,7 @@
     </v-alert>
 
     <!-- Пустой список -->
-    <v-card v-else-if="filteredOrders.length === 0" class="rounded-xl border pa-12 text-center" flat>
+    <v-card v-else-if="ordersStore.orders.length === 0" class="rounded-xl border pa-12 text-center" flat>
       <v-icon icon="mdi-package-variant" size="64" color="grey-lighten-1" class="mb-4"></v-icon>
       <h3 class="text-h6 font-weight-bold mb-2">Заказов нет</h3>
       <p class="text-body-2 text-grey">Новые заказы появятся здесь</p>
@@ -50,57 +37,35 @@
       <v-table>
         <thead class="bg-grey-lighten-4">
           <tr>
-            <th class="text-left font-weight-bold py-4 pl-6">Заказ</th>
+            <th class="text-left font-weight-bold py-4 pl-6">Магазин / ID</th>
+            <th class="text-left font-weight-bold">Состав заказа</th>
             <th class="text-left font-weight-bold">Дата</th>
-            <th class="text-left font-weight-bold">Клиент</th>
             <th class="text-left font-weight-bold">Сумма</th>
             <th class="text-left font-weight-bold">Статус</th>
-            <th class="text-right font-weight-bold pr-6">Действия</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="order in filteredOrders" :key="order.id" class="hover-row">
+          <tr v-for="order in ordersStore.orders" :key="order.id" class="hover-row">
             <td class="py-4 pl-6">
-              <div class="font-weight-bold">#{{ order.orderNumber }}</div>
-              <div class="text-caption text-grey">{{ order.items.length }} товаров</div>
+              <div class="font-weight-bold text-indigo-darken-2">{{ order.site_name }}</div>
+              <div class="text-caption text-grey text-truncate" style="max-width: 120px;" :title="order.id">#{{ order.id.slice(0, 8) }}...</div>
             </td>
-            <td class="text-body-2">{{ formatDate(order.createdAt) }}</td>
             <td>
-              <div class="font-weight-bold">{{ order.customerName }}</div>
-              <div class="text-caption text-grey">{{ order.customerPhone }}</div>
+              <div class="font-weight-medium">{{ order.items?.title || 'Товар' }}</div>
+              <div class="text-caption text-grey">{{ order.items?.count || 1 }} шт.</div>
             </td>
-            <td class="font-weight-bold">{{ formatPrice(order.total) }}</td>
+            <td class="text-body-2">{{ formatDate(order.created_at) }}</td>
+            <td class="font-weight-bold">{{ formatPrice(order.total_amount) }}</td>
             <td>
               <v-chip
                 size="small"
                 :color="getStatusColor(order.status)"
+                class="font-weight-bold"
                 label
+                :prepend-icon="getStatusIcon(order.status)"
               >
                 {{ getStatusLabel(order.status) }}
               </v-chip>
-            </td>
-            <td class="text-right pr-6">
-              <v-btn variant="text" color="blue" class="text-none font-weight-medium" @click="openOrderDetails(order)">
-                Подробнее
-              </v-btn>
-              <v-menu v-if="order.status !== 'delivered' && order.status !== 'cancelled'">
-                <template v-slot:activator="{ props }">
-                  <v-btn variant="text" color="grey" class="text-none" v-bind="props" icon="mdi-dots-vertical"></v-btn>
-                </template>
-                <v-list density="compact">
-                  <v-list-item
-                    v-for="nextStatus in getNextStatuses(order.status)"
-                    :key="nextStatus"
-                    @click="changeStatus(order.id, nextStatus)"
-                  >
-                    <v-list-item-title>{{ getStatusAction(nextStatus) }}</v-list-item-title>
-                  </v-list-item>
-                  <v-divider></v-divider>
-                  <v-list-item @click="changeStatus(order.id, 'cancelled')">
-                    <v-list-item-title class="text-red">Отменить</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
             </td>
           </tr>
         </tbody>
@@ -112,7 +77,7 @@
       <v-card v-if="selectedOrder" class="rounded-xl">
         <v-card-title class="d-flex align-center pa-6 pb-2">
           <span class="text-h6 font-weight-bold">Заказ #{{ selectedOrder.orderNumber }}</span>
-          <v-chip size="small" :color="getStatusColor(selectedOrder.status)" class="ml-3" label>
+          <v-chip size="small" :color="getStatusColor(selectedOrder.status)" class="ml-3 font-weight-bold" label :prepend-icon="getStatusIcon(selectedOrder.status)">
             {{ getStatusLabel(selectedOrder.status) }}
           </v-chip>
           <v-spacer></v-spacer>
@@ -183,77 +148,43 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
-import { useOrdersStore, type Order, type OrderStatus } from '@/stores/orders'
+import { useOrdersStore } from '@/stores/orders'
 
 const ordersStore = useOrdersStore()
-
-const activeStatus = ref<string>('all')
-const detailsDialog = ref(false)
-const selectedOrder = ref<Order | null>(null)
-
-const statusFilters = [
-  { label: 'Все', value: 'all' },
-  { label: 'Новые', value: 'new' },
-  { label: 'В обработке', value: 'processing' },
-  { label: 'Отправлены', value: 'shipped' },
-  { label: 'Доставлены', value: 'delivered' },
-  { label: 'Отменены', value: 'cancelled' },
-]
 
 onMounted(() => {
   ordersStore.fetchOrders()
 })
 
-const filteredOrders = computed(() => {
-  if (activeStatus.value === 'all') return ordersStore.orders
-  return ordersStore.orders.filter(o => o.status === activeStatus.value)
-})
-
-const getStatusCount = (status: string): number => {
-  return ordersStore.orders.filter(o => o.status === status).length
-}
-
 const getStatusColor = (status: string): string => {
-  switch (status) {
-    case 'new': return 'blue'
-    case 'processing': return 'orange'
-    case 'shipped': return 'purple'
-    case 'delivered': return 'green'
-    case 'cancelled': return 'grey'
-    default: return 'grey'
+  switch (status.toLowerCase()) {
+    case 'paid': return 'green-darken-1'
+    case 'awaiting payment': return 'orange-darken-1'
+    case 'cancelled': return 'red-lighten-1'
+    default: return 'grey-lighten-1'
   }
 }
 
 const getStatusLabel = (status: string): string => {
-  switch (status) {
-    case 'new': return 'Новый'
-    case 'processing': return 'В обработке'
-    case 'shipped': return 'Отправлен'
-    case 'delivered': return 'Доставлен'
+  switch (status.toLowerCase()) {
+    case 'paid': return 'Оплачен'
+    case 'awaiting payment': return 'Ожидает оплаты'
     case 'cancelled': return 'Отменён'
     default: return status
   }
 }
 
-const getStatusAction = (status: OrderStatus): string => {
-  switch (status) {
-    case 'processing': return 'Взять в работу'
-    case 'shipped': return 'Отправить'
-    case 'delivered': return 'Доставлен'
-    default: return ''
-  }
-}
-
-const getNextStatuses = (currentStatus: OrderStatus): OrderStatus[] => {
-  switch (currentStatus) {
-    case 'new': return ['processing']
-    case 'processing': return ['shipped']
-    case 'shipped': return ['delivered']
-    default: return []
+const getStatusIcon = (status: string): string => {
+  switch (status.toLowerCase()) {
+    case 'paid': return 'mdi-check-circle'
+    case 'awaiting payment': return 'mdi-clock-outline'
+    case 'cancelled': return 'mdi-close-circle'
+    default: return 'mdi-help-circle'
   }
 }
 
 const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-'
   const date = new Date(dateStr)
   return date.toLocaleDateString('ru-RU', {
     day: 'numeric',
@@ -265,15 +196,6 @@ const formatDate = (dateStr: string) => {
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat('ru-RU').format(price) + ' ₽'
-}
-
-const openOrderDetails = (order: Order) => {
-  selectedOrder.value = order
-  detailsDialog.value = true
-}
-
-const changeStatus = async (orderId: number, status: OrderStatus) => {
-  await ordersStore.updateOrderStatus(orderId, status)
 }
 </script>
 

@@ -70,14 +70,7 @@
               </div>
             </div>
 
-            <!-- Только в наличии -->
-            <v-switch
-              v-model="inStockOnly"
-              label="Только в наличии"
-              :color="settings.primaryColor"
-              density="compact"
-              hide-details
-            ></v-switch>
+
 
             <v-btn
               block
@@ -302,7 +295,6 @@ const loading = ref(true)
 const searchQuery = ref('')
 const priceFrom = ref<number | null>(null)
 const priceTo = ref<number | null>(null)
-const inStockOnly = ref(false)
 const sortBy = ref('default')
 
 const sortOptions = [
@@ -325,9 +317,9 @@ const gridCols = computed(() => {
 })
 
 // Загрузка
-onMounted(async () => {
+onMounted(() => {
   loading.value = true
-  await productsStore.fetchProducts()
+  // Товары уже загружены в productsStore из конфига
   loading.value = false
 })
 
@@ -354,10 +346,7 @@ const filteredProducts = computed(() => {
     result = result.filter(p => p.price <= priceTo.value!)
   }
 
-  // Только в наличии
-  if (inStockOnly.value) {
-    result = result.filter(p => p.status === 'active')
-  }
+
 
   // Сортировка
   switch (sortBy.value) {
@@ -390,9 +379,7 @@ const addToCart = (product: Product) => {
 
 const resetFilters = () => {
   searchQuery.value = ''
-  priceFrom.value = null
   priceTo.value = null
-  inStockOnly.value = false
   sortBy.value = 'default'
 }
 </script>

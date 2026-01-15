@@ -22,7 +22,7 @@
              </v-avatar>
              <div>
                <div class="text-caption text-grey font-weight-bold">ВАШ БАЛАНС</div>
-               <div class="text-h5 font-weight-bold">{{ authStore.user?.balance || 0 }} ₽</div>
+               <div class="text-h5 font-weight-bold">{{ balanceStore.availableBalance }} ₽</div>
              </div>
           </v-card>
         </v-col>
@@ -99,16 +99,18 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useBalanceStore } from '@/stores/balance'
 import { sitesService } from '@/services/sites'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const balanceStore = useBalanceStore()
 const activeStore = ref<any>(null)
 
 const checkStoreStatus = async () => {
     try {
-        const dashboardData = await sitesService.getDashboard()
-        const sites = dashboardData.sites || []
+        const response = await sitesService.getUserSites()
+        const sites = Array.isArray(response) ? response : (response.sites || [])
         activeStore.value = sites.find((s: any) => s.is_active || s.active)
     } catch (e) {
         console.error('Error checking store status', e)
@@ -121,8 +123,8 @@ onMounted(() => {
 
 const goToBuilder = async () => {
     try {
-        const dashboardData = await sitesService.getDashboard()
-        const sites = dashboardData.sites || []
+        const response = await sitesService.getUserSites()
+        const sites = Array.isArray(response) ? response : (response.sites || [])
         
         // Filter for active sites (Assuming 'is_active' or similar property, adjusting based on StoresView logic)
         // In StoresView we saw logic: active: s.is_active || s.active || false

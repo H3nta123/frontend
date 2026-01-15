@@ -241,7 +241,7 @@ const newReview = reactive({
   text: ''
 })
 
-const productId = computed(() => Number(route.params.id))
+const productId = computed(() => route.params.id as string)
 const productReviews = computed(() => reviewsStore.getReviewsByProductId(productId.value))
 
 const breadcrumbs = computed(() => [
@@ -250,10 +250,11 @@ const breadcrumbs = computed(() => [
   { title: product.value?.name || 'Товар', disabled: true }
 ])
 
-onMounted(async () => {
+onMounted(() => {
   loading.value = true
-  const result = await productsStore.fetchProductById(productId.value)
-  product.value = result
+  // Берем товар из уже загруженного списка (из конфига)
+  const found = productsStore.allProducts.find(p => String(p.id) === String(productId.value))
+  product.value = found || null
   loading.value = false
 })
 

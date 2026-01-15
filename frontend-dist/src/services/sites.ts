@@ -50,5 +50,13 @@ export const sitesService = {
      */
     async getDashboard(): Promise<any> {
         return await api.post('/me/dashboard', {})
+    },
+
+    /**
+     * Получить список сайтов пользователя
+     * GET /me/sites
+     */
+    async getUserSites(): Promise<any> {
+        return await api.get('/me/sites')
     }
 }

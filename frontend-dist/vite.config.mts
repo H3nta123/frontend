@@ -130,10 +130,9 @@ export default defineConfig(({ mode }) => {
           },
         },
         '/site-config': {
-          target: target,
+          target: 'https://09c745b2-c04c-4bb0-9f6a-36f731ddd5ac.tunnel4.com/',
           changeOrigin: true,
           secure: false,
-          // Убрали rewrite: '/', так как это могло ломать путь к эндпоинту
           configure: (proxy, _options) => {
             proxy.on('proxyReq', (proxyReq, req, _res) => {
               const host = req.headers.host
@@ -152,6 +151,26 @@ export default defineConfig(({ mode }) => {
             })
             proxy.on('error', (err, req, res) => {
               console.error('[Vite Proxy Error]', err)
+            })
+          },
+        },
+        '/basket': {
+          target: 'https://09c745b2-c04c-4bb0-9f6a-36f731ddd5ac.tunnel4.com/',
+          changeOrigin: true,
+          secure: false,
+          configure: (proxy, _options) => {
+            proxy.on('proxyReq', (proxyReq, req, _res) => {
+              const host = req.headers.host
+              if (host) {
+                const parts = host.split('.')
+                const sub = parts[0]
+                if (parts.length >= 2 && sub !== 'localhost' && sub !== '127') {
+                  console.log(`[Vite Proxy Basket] Host: ${host} -> X-Subdomain: ${sub}`)
+                  proxyReq.setHeader('X-Subdomain', sub)
+                }
+                const backendHost = host.replace(':3000', ':8080')
+                proxyReq.setHeader('X-Forwarded-Host', backendHost)
+              }
             })
           },
         },

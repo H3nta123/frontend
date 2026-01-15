@@ -27,7 +27,7 @@
             <v-icon icon="mdi-wallet-outline" color="#2A1A8E" size="small" class="mr-2"></v-icon>
             <div class="d-flex flex-column" style="line-height: 1.1;">
                 <span class="text-caption font-weight-bold text-grey-darken-1">Баланс</span>
-                <span class="text-subtitle-2 font-weight-bold text-grey-darken-3">{{ authStore.user?.balance || 0 }} ₽</span>
+                <span class="text-subtitle-2 font-weight-bold text-grey-darken-3">{{ balanceStore.availableBalance }} ₽</span>
             </div>
         </div>
 
@@ -137,14 +137,17 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useShopStore } from '@/stores/shop';
+import { useBalanceStore } from '@/stores/balance'; // Import balance store
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const shopStore = useShopStore();
+const balanceStore = useBalanceStore(); // Initialize balance store
 
 const handleLogout = () => {
   authStore.logout();

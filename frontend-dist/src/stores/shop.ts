@@ -258,30 +258,48 @@ export const useShopStore = defineStore('shop', () => {
       const subdomain = getSubdomain()
       if (!subdomain) return
 
-      // Используем /render endpoint согласно Postman
-      // Предполагаем, что slug = subdomain
-      const response = await api.get<any>(`/render?slug=${subdomain}`)
+      // Используем новый эндпоинт /site-config, который проксируется на бэкенд
+      // Хедер X-Subdomain добавляется автоматически через vite proxy (в dev) или nginx (прод)
+      const response = await fetch('/site-config', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
 
-      if (response) {
+      if (!response.ok) {
+        throw new Error('Failed to fetch config')
+      }
+
+      const data = await response.json()
+
+      if (data) {
         // Маппинг ответа на настройки и товары
-        // Структура ответа может отличаться, адаптируем по ходу
-        if (response.config) {
-          settings.value = { ...settings.value, ...response.config }
-        } else if (response.settings) {
-          settings.value = { ...settings.value, ...response.settings }
+        if (data.config) {
+          settings.value = { ...settings.value, ...data.config }
+        } else if (data.settings) {
+          settings.value = { ...settings.value, ...data.settings }
+        } else {
+          // Fallback если структура плоская
+          // settings.value = { ...settings.value, ...data }
         }
 
-        // Если товары внутри конфига - обновляем productsStore
-        if (response.products && Array.isArray(response.products)) {
-          products.value = response.products
-          productsStore.setProducts(response.products)
-        } else if (response.data?.products) {
-          products.value = response.data.products
-          productsStore.setProducts(response.data.products)
+        // Обновляем товары если пришли (проверяем несколько мест)
+        const productsList = data.config?.products || data.products || data.data?.products
+        if (Array.isArray(productsList) && productsList.length > 0) {
+          // Гарантируем наличие ID для роутинга и статус active
+          const productsWithIds = productsList.map((p: any) => ({
+            ...p,
+            id: p.id || crypto.randomUUID(), // Fallback если ID нет
+            status: 'active' // Всегда активен
+          }))
+          products.value = productsWithIds
+          productsStore.setProducts(productsWithIds)
+          console.log('[ShopStore] Loaded products:', productsWithIds.length)
         }
 
-        if (response.pattern) {
-          currentThemeId.value = response.pattern
+        if (data.pattern) {
+          currentThemeId.value = data.pattern
         }
       }
     } catch (e) {
@@ -290,18 +308,17 @@ export const useShopStore = defineStore('shop', () => {
   }
 
   // При инициализации проверяем поддомен
-  if (window.location.host.split('.').length > 2 && !window.location.host.startsWith('localhost')) {
-    // Это поддомен (но для localhost это работает криво, см. ниже)
-  }
-  // Более надежная проверка для dev
-  // Более надежная проверка для dev
   const host = window.location.host;
   // Для localhost:3000 subdomain.localhost:3000 дает split length 2 ('subdomain', 'localhost:3000')
   // Для продакшена или myshop.com это будет 3 ('subdomain', 'myshop', 'com')
   const isSubdomain = host.includes('localhost:3000') ? host.split('.').length >= 2 : host.split('.').length > 2;
 
   if (isSubdomain) {
-    fetchSiteConfig();
+    // В Dev режиме мы можем быть на localhost:3000, но без поддомена - тогда не грузим
+    const sub = getSubdomain();
+    if (sub && sub !== 'www' && sub !== 'app') {
+      fetchSiteConfig();
+    }
   }
 
   // Авто-сохранение при изменениях
@@ -339,7 +356,7 @@ function getSubdomain() {
   const host = window.location.host;
   if (host.includes('localhost:3000')) {
     const parts = host.split('.');
-    if (parts.length > 2) { // e.g. test.localhost:3000
+    if (parts.length >= 2) { // e.g. test.localhost:3000 -> 2 parts
       return parts[0];
     }
   }

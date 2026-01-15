@@ -290,19 +290,63 @@ const submitOrder = async () => {
   if (!validate()) return
 
   submitting.value = true
+  
+  try {
+      // 1. Формируем строку товаров
+      const itemsTitle = cartStore.items
+          .map(item => `${item.name} x${item.quantity}`)
+          .join(', ')
+      
+      const payload = {
+          items: {
+              title: itemsTitle,
+              count: cartStore.totalItems
+          },
+          total_amount: cartStore.total,
+          return_url: "test",
+          description: `Заказ от ${cartStore.customerInfo.name}`,
+          email: cartStore.customerInfo.email || "no-email@test.com"
+      }
+      
+      // 2. Отправляем запрос
+      // Используем /basket/payment который проксируется на бэкенд
+      const response = await fetch('/basket/payment', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+      })
 
-  // Имитация отправки заказа
-  await new Promise(resolve => setTimeout(resolve, 1500))
+      if (!response.ok) {
+          throw new Error('Ошибка при создании платежа')
+      }
+      
+      const data = await response.json()
+      console.log('Payment created:', data)
 
-  // Генерация номера заказа
-  orderNumber.value = String(100000 + Math.floor(Math.random() * 900000))
+      if (data.confirmation_url) {
+        // Редирект на оплату
+        window.location.href = data.confirmation_url
+        return
+      }
 
-  // Очистка корзины
-  cartStore.clearCart()
-  cartStore.resetCustomerInfo()
+      // Если ссылки нет (например, тестовый режим или ошибка), показываем успех
+      // Генерация номера заказа (можно брать из ответа если бэк отдает)
+      orderNumber.value = String(100000 + Math.floor(Math.random() * 900000))
 
-  submitting.value = false
-  successDialog.value = true
+      // Очистка корзины
+      cartStore.clearCart()
+      cartStore.resetCustomerInfo()
+
+      submitting.value = false
+      successDialog.value = true
+      
+  } catch (e) {
+      console.error('Order error:', e)
+      alert('Произошла ошибка при оформлении заказа. Попробуйте снова.')
+      submitting.value = false
+  }
 }
 </script>
 

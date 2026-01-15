@@ -12,7 +12,10 @@
           <v-card class="rounded-xl border" flat color="#2A1A8E">
             <v-card-text class="text-white pa-6">
                 <div class="text-caption font-weight-bold opacity-70 mb-2">ДОСТУПНЫЙ БАЛАНС</div>
-                <div class="text-h3 font-weight-bold mb-4">{{ authStore.user?.balance || 0 }} ₽</div>
+                <div class="text-h3 font-weight-bold mb-4">
+                    <v-progress-circular v-if="loading" indeterminate color="white" size="32"></v-progress-circular>
+                    <span v-else>{{ availableBalance }} ₽</span>
+                </div>
                 <v-btn 
                     variant="flat" 
                     color="white" 
@@ -37,79 +40,39 @@
         </v-col>
       </v-row>
 
-      <!-- История транзакций -->
-      <v-card class="rounded-xl border" flat>
-        <v-card-title class="px-6 pt-6 pb-4 text-h6 font-weight-bold">История транзакций</v-card-title>
-        
-        <v-data-table
-            :headers="headers"
-            :items="transactions"
-            hover
-            class="fill-height rounded-0"
-        >
-            <template v-slot:item.amount="{ item }">
-                <span :class="item.amount > 0 ? 'text-green-darken-1 font-weight-bold' : 'text-black'">
-                    {{ item.amount > 0 ? '+' : '' }}{{ item.amount }} ₽
-                </span>
-            </template>
-            <template v-slot:item.status="{ item }">
-                 <v-chip size="small" :color="getStatusColor(item.status)" label class="font-weight-bold">
-                     {{ getStatusText(item.status) }}
-                 </v-chip>
-            </template>
-            <template v-slot:bottom>
-                 <!-- Скрываем пагинацию если мало элементов -->
-                 <div v-if="transactions.length > 10" class="pa-4"></div>
-            </template>
-        </v-data-table>
-      </v-card>
-
     </v-container>
   </MainLayout>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useBalanceStore } from '@/stores/balance'
 
 const authStore = useAuthStore()
+const balanceStore = useBalanceStore()
 
-const headers = [
-  { title: 'Дата', key: 'date', align: 'start' as const },
-  { title: 'Описание', key: 'description' },
-  { title: 'Магазин', key: 'store' },
-  { title: 'Сумма', key: 'amount' },
-  { title: 'Статус', key: 'status' },
-]
+const loading = ref(true)
 
-interface Transaction {
-  id: number
-  date: string
-  description: string
-  store: string
-  amount: number
-  status: string
-}
+// Суммируем все балансы, которые пришли с API /me/sellers/balances
+// Суммируем все балансы, которые пришли с API /me/sellers/balances
+const availableBalance = computed(() => {
+    const data = balanceStore.balances
+    if (!data || !data.balances) return 0
+    
+    // Суммируем значения всех ключей в объекте balances
+    return Object.values(data.balances).reduce((sum, amount) => {
+        return sum + (Number(amount) || 0)
+    }, 0)
+})
 
-// Mock данные (Пусто)
-const transactions = ref<Transaction[]>([])
-
-const getStatusColor = (status: string) => {
-    switch (status) {
-        case 'success': return 'green'
-        case 'pending': return 'orange'
-        case 'failed': return 'red'
-        default: return 'grey'
+onMounted(async () => {
+    loading.value = true
+    try {
+        await balanceStore.fetchBalances()
+    } finally {
+        loading.value = false
     }
-}
-
-const getStatusText = (status: string) => {
-    switch (status) {
-        case 'success': return 'Выполнено'
-        case 'pending': return 'В обработке'
-        case 'failed': return 'Ошибка'
-        default: return status
-    }
-}
+})
 </script>
