@@ -10,23 +10,10 @@
         <span class="ml-3 text-h6 font-weight-bold text-grey-darken-4">Quickstart</span>
       </div>
 
-      <!-- Поиск -->
-      <v-responsive max-width="400" class="mr-4">
-        <v-text-field
-          density="compact"
-          variant="outlined"
-          placeholder="Поиск..."
-          single-line
-          hide-details
-          rounded="lg"
-          bg-color="grey-lighten-4"
-          base-color="transparent"
-          class="custom-search"
-          prepend-inner-icon="mdi-magnify"
-        ></v-text-field>
-      </v-responsive>
-
+      <!-- Поиск (Removed) -->
       <v-spacer></v-spacer>
+
+
 
       <!-- Меню профиля и Баланс -->
       <div class="d-flex align-center gap-2">
@@ -76,31 +63,32 @@
     </v-app-bar>
 
     <!-- === БОКОВОЕ МЕНЮ === -->
+
     <v-navigation-drawer
       v-if="authStore.isAuthenticated"
       permanent
-      color="#E0E0E0"
-      width="260"
-      class="border-none pt-4 px-3"
+      color="#F8F9FA"
+      width="280"
+      class="border-r px-4 d-flex flex-column justify-center"
     >
-      <v-list class="bg-transparent" density="compact">
+      <v-list class="bg-transparent w-100" density="comfortable" nav>
 
         <!-- ГЛАВНАЯ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
+        <v-list-item class="pa-0 mb-4" :ripple="false">
           <router-link to="/" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive && route.path === '/' }">
-              <v-icon icon="mdi-home-variant-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Главная</span>
+            <div @click="navigate" class="sidebar-item d-flex align-center px-8 py-5 rounded-xl cursor-pointer" :class="{ 'active': isActive && route.path === '/' }">
+              <v-icon icon="mdi-home-variant-outline" size="28" class="mr-4"></v-icon>
+              <span class="font-weight-bold text-h6">Главная</span>
             </div>
           </router-link>
         </v-list-item>
 
         <!-- ЗАКАЗЫ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
+        <v-list-item class="pa-0 mb-4" :ripple="false">
           <router-link to="/orders" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-package-variant" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Заказы</span>
+            <div @click="navigate" class="sidebar-item d-flex align-center px-8 py-5 rounded-xl cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-package-variant" size="28" class="mr-4"></v-icon>
+              <span class="font-weight-bold text-h6">Заказы</span>
             </div>
           </router-link>
         </v-list-item>
@@ -109,40 +97,34 @@
 
 
         <!-- МАГАЗИНЫ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
+        <v-list-item class="pa-0 mb-4" :ripple="false">
           <router-link to="/stores" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-store-cog-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Магазины</span>
+            <div @click="navigate" class="sidebar-item d-flex align-center px-8 py-5 rounded-xl cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-store-cog-outline" size="28" class="mr-4"></v-icon>
+              <span class="font-weight-bold text-h6">Магазины</span>
+            </div>
+          </router-link>
+        </v-list-item>
+
+        <!-- ФИНАНСЫ -->
+        <v-list-item class="pa-0 mb-4" :ripple="false">
+          <router-link to="/finance" custom v-slot="{ navigate, isActive }">
+            <div @click="navigate" class="sidebar-item d-flex align-center px-8 py-5 rounded-xl cursor-pointer" :class="{ 'active': isActive }">
+              <v-icon icon="mdi-wallet-outline" size="28" class="mr-4"></v-icon>
+              <span class="font-weight-bold text-h6">Финансы</span>
             </div>
           </router-link>
         </v-list-item>
 
 
 
-        <!-- ШАБЛОНЫ -->
-        <v-list-item class="pa-0 mb-1" :ripple="false">
-          <router-link to="/themes" custom v-slot="{ navigate, isActive }">
-            <div @click="navigate" class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer" :class="{ 'active': isActive }">
-              <v-icon icon="mdi-palette-outline" size="small" class="mr-3"></v-icon>
-              <span class="font-weight-bold text-body-2">Шаблоны</span>
-            </div>
-          </router-link>
-        </v-list-item>
+
 
 
 
       </v-list>
 
-      <!-- Настройки внизу -->
-      <template v-slot:append>
-        <div class="pa-4">
-          <div class="sidebar-item d-flex align-center px-4 py-2 rounded-lg cursor-pointer text-grey-darken-3">
-            <v-icon icon="mdi-cog-outline" size="small" class="mr-3"></v-icon>
-            <span class="font-weight-bold text-body-2">Настройки</span>
-          </div>
-        </div>
-      </template>
+        <!-- Settings Removed -->
     </v-navigation-drawer>
 
     <!-- === ОСНОВНОЙ КОНТЕНТ === -->
@@ -184,20 +166,24 @@ const handleLogout = () => {
   &:hover { opacity: 0.8; }
 }
 .sidebar-item {
-  transition: all 0.1s ease;
-  color: #333;
+  transition: all 0.2s ease;
+  color: #555;
+  border-radius: 12px;
+  margin-bottom: 4px;
 
   &.active {
-    background-color: #e8eaf6; /* Светло-фиолетовый фон для активного */
-    color: #2A1A8E !important; /* Твой фирменный цвет */
+    background-color: #EDE7F6; /* Very light purple */
+    color: #4527A0 !important; /* Deep Purple */
+    font-weight: 700 !important;
 
     .v-icon {
-      color: #2A1A8E !important;
+      color: #4527A0 !important;
     }
   }
 
   &:hover:not(.active) {
-    background-color: rgba(0,0,0,0.04);
+    background-color: rgba(0,0,0,0.03);
+    color: #000;
   }
 }
 .cursor-pointer { cursor: pointer; }

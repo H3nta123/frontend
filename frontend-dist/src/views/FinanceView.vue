@@ -83,33 +83,17 @@ const headers = [
   { title: 'Статус', key: 'status' },
 ]
 
-// Mock данные
-const transactions = ref([
-    {
-        id: 1,
-        date: '13.01.2025 14:30',
-        description: 'Продажа: Футболка Basic (Заказ #1001)',
-        store: 'myshop.localhost',
-        amount: 1200,
-        status: 'success'
-    },
-    {
-        id: 2,
-        date: '12.01.2025 10:15',
-        description: 'Продажа: Кепка Brand (Заказ #998)',
-        store: 'myshop.localhost',
-        amount: 800,
-        status: 'pending'
-    },
-    {
-        id: 3,
-        date: '10.01.2025 18:45',
-        description: 'Вывод средств',
-        store: '-',
-        amount: -5000,
-        status: 'success'
-    }
-])
+interface Transaction {
+  id: number
+  date: string
+  description: string
+  store: string
+  amount: number
+  status: string
+}
+
+// Mock данные (Пусто)
+const transactions = ref<Transaction[]>([])
 
 const getStatusColor = (status: string) => {
     switch (status) {
