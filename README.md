@@ -1,87 +1,88 @@
-# 🛍️ Store Constructor Platform
+# 🛍️ Платформа Конструктора Магазинов
 
-An advanced platform for creating and managing online stores. Built with Vue 3, Vuetify, and Pinia.
+Продвинутая платформа для создания и управления интернет-магазинами. Разработана с использованием **Vue 3**, **Vuetify** и **Pinia**.
 
-## ✨ Features
+## ✨ Возможности
 
-- **🏪 Store Management**: Create multiple stores, manage settings, and switch between them instantly.
-- **🎨 Visual Builder**: Drag-and-drop / iframe-based store builder to customize themes and content.
-- **📦 Product Management**: Full product catalog, brand management, and fast product creation flows.
-- **💰 Finance & Balance**: Real-time balance tracking, transaction history (mocked), and payout requests.
-- **🛒 Storefront Engine**: Built-in storefront preview system (`/shop/...`) for testing customer experience.
-- **🔐 Secure Authentication**: Email-based OTP login system with JWT session management.
+- **🏪 Управление магазинами**: Создавайте несколько магазинов, управляйте настройками и мгновенно переключайтесь между ними.
+- **🎨 Визуальный конструктор**: Конструктор магазинов с функцией drag-and-drop / iframe для настройки тем и контента в реальном времени.
+- **📦 Управление товарами**: Полный каталог товаров, управление брендами и быстрое создание продуктов.
+- **💰 Финансы и Баланс**: Отслеживание баланса в реальном времени, история транзакций и запросы на вывод средств.
+- **🛒 Движок витрины**: Встроенная система предпросмотра витрины (`/shop/...`) для тестирования пользовательского опыта.
+- **🔐 Безопасная аутентификация**: Система входа по Email с OTP и управлением сессиями через JWT.
 
-## 🛠 Tech Stack
+## 🛠 Стек технологий
 
-- **Framework**: [Vue 3](https://v3.vuejs.org/) (Composition API)
-- **UI Component Library**: [Vuetify 3](https://vuetifyjs.com/)
-- **State Management**: [Pinia](https://pinia.vuejs.org/)
-- **Routing**: [Vue Router 4](https://router.vuejs.org/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **HTTP Client**: Custom `ApiService` wrapper around native `fetch`.
+- **Фреймворк**: [Vue 3](https://v3.vuejs.org/) (Composition API)
+- **UI Библиотека**: [Vuetify 3](https://vuetifyjs.com/)
+- **Управление состоянием**: [Pinia](https://pinia.vuejs.org/)
+- **Маршрутизация**: [Vue Router 4](https://router.vuejs.org/)
+- **Сборщик**: [Vite](https://vitejs.dev/)
+- **HTTP Клиент**: Кастомный `ApiService` (обертка над нативным `fetch`).
 
-## 🚀 Getting Started
+## 🚀 Начало работы
 
-### Prerequisites
+### Предварительные требования
 
-- Node.js (v18+ recommended)
-- npm or yarn
+- Node.js (рекомендуется v18+)
+- npm или yarn
 
-### Installation
+### Установка
 
-1.  **Clone the repository**
+1.  **Клонируйте репозиторий**
     ```bash
     git clone https://github.com/H3nta123/frontend.git
     cd frontend/frontend-dist
     ```
 
-2.  **Install dependencies**
+2.  **Установите зависимости**
     ```bash
     npm install
     ```
 
-3.  **Environment Configuration**
-    Create a `.env` file in the root directory if it doesn't exist. This manages the connection to the backend service (often via a tunnel).
+3.  **Настройка окружения**
+    Создайте файл `.env` в корневой директории, если он не существует. Он управляет подключением к бэкенд-сервису.
     ```env
-    # Example .env content
+    # Пример содержимого .env
     VITE_BACKEND_URL=http://your-backend-tunnel-url.com/
     ```
 
-### Running Locally
+### Локальный запуск
 
-Start the development server:
+Запустите сервер разработки:
 
 ```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`.
+Приложение будет доступно по адресу `http://localhost:3000`.
 
-## 📂 Project Structure
+## 📂 Структура проекта
 
 ```
 src/
-├── components/      # Reusable UI components (AuthCard, ProductForm, etc.)
-├── layouts/         # Layout definitions (MainLayout, AuthLayout, ShopLayout)
-├── pages/           # File-based routing pages (optional, mostly using views)
-├── services/        # API clients and business logic services
-│   ├── api.ts       # Unified API client implementation
-│   └── sites.ts     # Site management service
-├── stores/          # Pinia stores (Global state)
-│   ├── auth.ts      # User authentication & balance
-│   ├── shop.ts      # Current shop configuration
-│   └── ...          # Other domain stores (products, cart, etc.)
-├── views/           # Main application views linked to router
-│   ├── shop/        # Storefront specific views (Catalog, Checkout, etc.)
-│   ├── BuilderView  # Store builder interface
+├── analytics/       # (New) Папка для аналитики
+├── components/      # Переиспользуемые UI компоненты (AuthCard, ProductForm и др.)
+├── layouts/         # Определения макетов (MainLayout, AuthLayout, ShopLayout)
+├── pages/           # Страницы (опционально, в основном используются views)
+├── services/        # API клиенты и бизнес-логика
+│   ├── api.ts       # Единый HTTP клиент
+│   └── sites.ts     # Сервис управления сайтами
+├── stores/          # Pinia хранилища (Глобальное состояние)
+│   ├── auth.ts      # Аутентификация и баланс
+│   ├── shop.ts      # Конфигурация текущего магазина
+│   └── ...          # Другие хранилища (товары, корзина и т.д.)
+├── views/           # Основные экраны приложения (роуты)
+│   ├── shop/        # Витрина магазина (Каталог, Чекаут)
+│   ├── BuilderView  # Интерфейс конструктора
 │   └── ...
-└── App.vue          # Root component
+└── App.vue          # Корневой компонент
 ```
 
-## 🔌 Backend Integration
+## 🔌 Интеграция с бэкендом
 
-The frontend communicates with the backend via `/api/v1`.
-See [backend_interface.md](./backend_interface.md) for detailed API documentation.
+Фронтенд общается с бэкендом через `/api/v1`.
+См. `backend_interface.md` для подробной документации API.
 
-- **Authentication**: JWT-based (Access + Refresh tokens).
-- **Proxy**: Vite is configured to proxy `/api` requests to the `VITE_BACKEND_URL` defined in `.env`.
+- **Аутентификация**: JWT (Access + Refresh токены).
+- **Прокси**: Vite настроен на проксирование запросов `/api` на `VITE_BACKEND_URL`, указанный в `.env`.
